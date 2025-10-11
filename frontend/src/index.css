@@ -1,0 +1,18 @@
+/* PLEASE NOTE: THESE TAILWIND IMPORTS SHOULD NEVER BE DELETED */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+/* DO NOT DELETE THESE TAILWIND IMPORTS, OTHERWISE THE STYLING WILL NOT RENDER AT ALL */
+
+/* Ensure the document and root fill the viewport so background sections can use 100% height reliably */
+html, body, #root {
+	height: 100%;
+}
+
+/* Make the default page background match the sections' gray so there are no white bars */
+body {
+	margin: 0;
+	background: #F9FAFB; /* Tailwind gray-50 */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
