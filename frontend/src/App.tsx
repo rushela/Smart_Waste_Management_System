@@ -13,7 +13,7 @@ export function App() {
         <FeatureCards />
         <HowItWorks />
         <AnalyticsDashboard />
-        <LoginSection />
+        {/* <LoginSection /> */}
       </main>
       <Footer />
     </div>;
