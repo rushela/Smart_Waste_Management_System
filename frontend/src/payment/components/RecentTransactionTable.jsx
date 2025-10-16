@@ -1,6 +1,7 @@
 import React from 'react';
 
 const RecentTransactionTable = ({ transactions }) => {
+  const txns = Array.isArray(transactions) ? transactions : [];
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed': return 'text-green-600 bg-green-100';
@@ -48,9 +49,9 @@ const RecentTransactionTable = ({ transactions }) => {
       </div>
 
       <div className="space-y-4">
-        {transactions.map((transaction) => (
+        {txns.map((transaction) => (
           <div
-            key={transaction.id}
+            key={transaction._id || transaction.id || transaction.transactionId || Math.random().toString(36).slice(2,9)}
             className="flex items-center justify-between p-4 transition-all duration-200 border border-gray-100 rounded-xl hover:border-green-200 hover:bg-green-50 group"
           >
             <div className="flex items-center space-x-4">
@@ -60,7 +61,7 @@ const RecentTransactionTable = ({ transactions }) => {
                   {transaction.description}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {new Date(transaction.date).toLocaleDateString('en-US', {
+                  {new Date(transaction.paymentDate || transaction.date || Date.now()).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric'
@@ -72,17 +73,17 @@ const RecentTransactionTable = ({ transactions }) => {
             <div className="flex items-center space-x-4">
               <span
                 className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                  transaction.status
+                  (transaction.status || '').charAt(0).toUpperCase() + (transaction.status || '').slice(1)
                 )}`}
               >
-                {transaction.status}
+                {transaction.status || 'Unknown'}
               </span>
               <p
                 className={`font-semibold ${
-                  transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                  (transaction.amount || 0) > 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
-                {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
+                {(transaction.amount || 0) > 0 ? '+' : ''}${Math.abs(transaction.amount || 0).toFixed(2)}
               </p>
             </div>
           </div>

@@ -4,11 +4,32 @@ const TransactionFilterBar = ({ filters, onFiltersChange, totalTransactions }) =
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const statusOptions = [
-    { value: 'all', label: 'All Status', color: 'gray' },
+    { value: 'all', label: 'All Status', color: 'blue' },
     { value: 'completed', label: 'Completed', color: 'green' },
     { value: 'pending', label: 'Pending', color: 'yellow' },
     { value: 'failed', label: 'Failed', color: 'red' }
   ];
+
+  // explicit Tailwind class mappings (avoids dynamic template strings which may be purged)
+  const colorClassMap = {
+    blue: {
+      active: 'bg-blue-500 text-white shadow-md',
+      inactive: 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+    },
+    green: {
+      active: 'bg-green-500 text-white shadow-md',
+      inactive: 'bg-green-100 text-green-700 hover:bg-green-200'
+    },
+    yellow: {
+      // yellow uses a darker active background + dark text for readability
+      active: 'bg-yellow-400 text-white shadow-md',
+      inactive: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+    },
+    red: {
+      active: 'bg-red-500 text-white shadow-md',
+      inactive: 'bg-red-100 text-red-700 hover:bg-red-200'
+    }
+  };
 
   const typeOptions = [
     { value: 'all', label: 'All Types' },
@@ -85,19 +106,20 @@ const TransactionFilterBar = ({ filters, onFiltersChange, totalTransactions }) =
               Status
             </label>
             <div className="flex flex-wrap gap-2">
-              {statusOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleFilterChange('status', option.value)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    filters.status === option.value
-                      ? `bg-${option.color}-500 text-white shadow-md`
-                      : `bg-${option.color}-100 text-${option.color}-700 hover:bg-${option.color}-200`
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+              {statusOptions.map((option) => {
+                const isActive = filters.status === option.value;
+                // Special case yellow (pending) to use darker text for readability instead of white
+                const classes = colorClassMap[option.color] || colorClassMap.blue;
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => handleFilterChange('status', option.value)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? classes.active : classes.inactive}`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

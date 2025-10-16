@@ -24,7 +24,12 @@ const HeaderBar = ({ userName, accountNumber }) => {
           </div>
           <div className="flex items-center justify-center w-10 h-10 bg-green-100 border-2 border-green-200 rounded-full">
             <span className="text-sm font-semibold text-green-700">
-              {userName.split(' ').map(n => n[0]).join('')}
+              {(() => {
+                const name = userName || '';
+                const parts = name.trim() ? name.trim().split(' ') : [];
+                if (parts.length === 0) return 'U';
+                return parts.map(n => (n && n[0]) || '').join('').toUpperCase();
+              })()}
             </span>
           </div>
         </div>

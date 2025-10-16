@@ -1,36 +1,66 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeaderBar from './components/HeaderBar';
 import BalanceCard from './components/BalanceCard';
 import PayNowButton from './components/PayNowButton';
 import RecentTransactionTable from './components/RecentTransactionTable';
+import { paymentsAPI } from '../api/payments.api';
 
 const PaymentDashboard = () => {
-  const userData = {
-    name: "Alex Johnson",
-    balance: 245.67,
-    accountNumber: "ECO-7842-2198"
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState({
+    outstandingBalance: 0,
+    recentTransactions: []
+  });
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await paymentsAPI.listMine();
+      setDashboardData({
+        outstandingBalance: response.outstandingBalance,
+        recentTransactions: response.data.slice(0, 5) // Last 5 transactions
+      });
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+      // In production, show user-friendly error message
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const recentTransactions = [
-    { id: 1, date: "2024-01-15", description: "Monthly Waste Collection", amount: -45.00, status: "Completed", type: "payment" },
-    { id: 2, date: "2024-01-10", description: "Recycling Credit", amount: 12.50, status: "Completed", type: "credit" },
-    { id: 3, date: "2024-01-05", description: "Green Bin Service", amount: -32.00, status: "Completed", type: "payment" },
-    { id: 4, date: "2024-01-02", description: "Eco Reward Bonus", amount: 5.00, status: "Completed", type: "credit" },
-    { id: 5, date: "2023-12-28", description: "Annual Maintenance", amount: -120.00, status: "Completed", type: "payment" }
-  ];
+  const handleProceedToCheckout = () => {
+    navigate('/payment/checkout');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+          <p className="text-gray-600">Loading your eco-dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 bg-gradient-to-br from-green-50 to-emerald-100 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        <HeaderBar userName={userData.name} accountNumber={userData.accountNumber} />
+      <div className="mx-auto max-w-7xl">
+        <HeaderBar />
         
         <div className="grid grid-cols-1 gap-6 mt-6 lg:grid-cols-3">
           {/* Left Column - Balance and Actions */}
           <div className="space-y-6 lg:col-span-1">
-            <BalanceCard balance={userData.balance} />
-            <PayNowButton />
+            <BalanceCard balance={dashboardData.outstandingBalance} />
+            <PayNowButton onClick={handleProceedToCheckout} />
             
-            {/* Eco Stats Card */}
+            {/* Quick Stats */}
             <div className="p-6 bg-white border border-green-100 shadow-lg rounded-2xl">
               <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800">
                 <span className="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
@@ -55,7 +85,10 @@ const PaymentDashboard = () => {
           
           {/* Right Column - Transactions */}
           <div className="lg:col-span-2">
-            <RecentTransactionTable transactions={recentTransactions} />
+            <RecentTransactionTable 
+              transactions={dashboardData.recentTransactions}
+              onViewAll={() => navigate('/payment/history')}
+            />
           </div>
         </div>
       </div>

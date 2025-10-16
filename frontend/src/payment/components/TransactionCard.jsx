@@ -97,10 +97,24 @@ const TransactionCard = ({ transaction }) => {
             </div>
           </div>
           
-          <div className={`bg-${statusConfig.color}-100 text-${statusConfig.color}-700 px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1`}>
-            {statusConfig.icon}
-            <span className="capitalize">{transaction.status}</span>
-          </div>
+          {
+            // explicit badge classes per status color
+            (() => {
+              const badgeMap = {
+                green: 'bg-green-100 text-green-700',
+                yellow: 'bg-yellow-100 text-yellow-800',
+                red: 'bg-red-100 text-red-700',
+                gray: 'bg-gray-100 text-gray-700'
+              };
+              const badgeClass = badgeMap[statusConfig.color] || badgeMap.gray;
+              return (
+                <div className={`${badgeClass} px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1`}>
+                  {statusConfig.icon}
+                  <span className="capitalize">{transaction.status}</span>
+                </div>
+              );
+            })()
+          }
         </div>
       </div>
 
@@ -131,9 +145,12 @@ const TransactionCard = ({ transaction }) => {
             <svg className="flex-shrink-0 w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            <p className="text-xs font-medium text-green-700">
-              {transaction.ecoImpact}
-            </p>
+            <div>
+              <p className="text-xs font-medium text-green-700">Eco Impact</p>
+              <p className="text-xs text-green-600">
+                CO₂: {transaction.ecoImpact?.co2Saved || 'N/A'} • Trees: {transaction.ecoImpact?.treesSupported ?? 'N/A'} • Credit: {transaction.ecoImpact?.recyclingCredit ?? 'N/A'}
+              </p>
+            </div>
           </div>
         </div>
 

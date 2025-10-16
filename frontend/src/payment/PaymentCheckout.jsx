@@ -1,26 +1,33 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GatewayForm from './components/GatewayForm';
 import AmountInput from './components/AmountInput';
 import ConfirmPaymentButton from './components/ConfirmPaymentButton';
+import { paymentsAPI } from '../api/payments.api';
 
 const PaymentCheckout = () => {
-  const [paymentAmount, setPaymentAmount] = useState(0);
+  const navigate = useNavigate();
+  const [paymentAmount, setPaymentAmount] = useState(82.50);
   const [selectedMethod, setSelectedMethod] = useState('card');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
-  const paymentMethods = [
-    { id: 'card', name: 'Credit/Debit Card', icon: '💳' },
-    { id: 'paypal', name: 'PayPal', icon: '🌿' },
-    { id: 'bank', name: 'Bank Transfer', icon: '🏦' }
-  ];
-
-  const handlePaymentSubmit = (paymentData) => {
-    setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      alert('Payment processed successfully!');
-      setIsProcessing(false);
-    }, 2000);
+  const handlePaymentSubmit = async (paymentData) => {
+    try {
+      setProcessing(true);
+      const checkoutSession = await paymentsAPI.checkout({
+        amount: paymentData.amount,
+        method: selectedMethod,
+        description: 'EcoBinPay Service Payment'
+      });
+      
+      // Redirect to mock gateway
+      navigate(checkoutSession.redirectUrl);
+    } catch (error) {
+      console.error('Payment failed:', error);
+      alert('Payment initiation failed. Please try again.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
@@ -42,7 +49,6 @@ const PaymentCheckout = () => {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Left Column - Payment Form */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Payment Method Selection */}
             <div className="p-6 bg-white border border-green-100 shadow-lg rounded-2xl">
               <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
                 <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,29 +56,12 @@ const PaymentCheckout = () => {
                 </svg>
                 Payment Method
               </h2>
-              
-              <div className="grid grid-cols-1 gap-3 mb-6 md:grid-cols-3">
-                {paymentMethods.map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => setSelectedMethod(method.id)}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                      selectedMethod === method.id
-                        ? 'border-green-500 bg-green-50 shadow-md'
-                        : 'border-gray-200 hover:border-green-300'
-                    }`}
-                  >
-                    <div className="mb-2 text-2xl">{method.icon}</div>
-                    <p className="font-medium text-gray-800">{method.name}</p>
-                  </button>
-                ))}
-              </div>
-
-              {/* Payment Form */}
-              <GatewayForm selectedMethod={selectedMethod} />
+              <GatewayForm 
+                selectedMethod={selectedMethod}
+                onMethodChange={setSelectedMethod}
+              />
             </div>
 
-            {/* Amount Input */}
             <AmountInput 
               amount={paymentAmount}
               onAmountChange={setPaymentAmount}
@@ -81,7 +70,6 @@ const PaymentCheckout = () => {
 
           {/* Right Column - Summary */}
           <div className="space-y-6">
-            {/* Order Summary */}
             <div className="sticky p-6 bg-white border border-green-100 shadow-lg rounded-2xl top-6">
               <h3 className="mb-4 text-lg font-semibold text-gray-800">Payment Summary</h3>
               
@@ -99,56 +87,18 @@ const PaymentCheckout = () => {
                   <span className="font-medium">$5.50</span>
                 </div>
                 <div className="pt-2 border-t border-gray-200">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">$82.50</span>
+                  <div className="flex justify-between font-semibold">
+                    <span>Total Amount</span>
+                    <span className="text-green-600">${paymentAmount.toFixed(2)}</span>
                   </div>
                 </div>
-                {paymentAmount > 0 && (
-                  <div className="pt-2 border-t border-gray-200">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Custom Amount</span>
-                      <span className="font-medium text-green-600">${paymentAmount.toFixed(2)}</span>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* Eco Impact */}
-              <div className="p-4 mb-6 bg-green-50 rounded-xl">
-                <div className="flex items-center mb-2 space-x-2">
-                  <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-sm font-medium text-green-800">Eco Impact</span>
-                </div>
-                <p className="text-xs text-green-700">
-                  This payment supports sustainable waste management and helps reduce carbon emissions.
-                </p>
-              </div>
-
-              {/* Confirm Button */}
               <ConfirmPaymentButton 
-                amount={paymentAmount || 82.50}
-                isProcessing={isProcessing}
+                amount={paymentAmount}
+                isProcessing={processing}
                 onSubmit={handlePaymentSubmit}
               />
-            </div>
-
-            {/* Security Badge */}
-            <div className="p-6 text-center bg-white border border-green-100 shadow-lg rounded-2xl">
-              <div className="flex justify-center space-x-4 text-sm text-gray-600">
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>256-bit SSL</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                  <span>PCI DSS</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
