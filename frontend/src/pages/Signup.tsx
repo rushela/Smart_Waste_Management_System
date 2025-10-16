@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { FormEvent, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   User,
   Truck,
@@ -12,10 +12,76 @@ import {
   Phone,
 } from 'lucide-react'
 // Particle background removed from auth page to prevent layout jitter
+import { useAuth } from '../context/AuthContext'
+
+type Role = 'resident' | 'staff' | 'admin'
+
 export function Signup() {
-  const [selectedRole, setSelectedRole] = useState('resident')
+  const navigate = useNavigate()
+  const { register } = useAuth()
+
+  const [selectedRole, setSelectedRole] = useState<Role>('resident')
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [step, setStep] = useState(1)
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: '',
+    address: '',
+    householdSize: '',
+    workerId: '',
+    department: ''
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  function updateForm(field: keyof typeof form, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function validateStepOne() {
+    if (!form.firstName.trim()) return 'First name is required.'
+    if (!form.lastName.trim()) return 'Last name is required.'
+    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email)) return 'Please provide a valid email address.'
+    if (!form.password || form.password.length < 6) return 'Password must be at least 6 characters.'
+    if (form.password !== form.confirmPassword) return 'Passwords do not match.'
+    return null
+  }
+
+  function validateStepTwo() {
+    if (!form.phone.trim()) return 'Phone number is required.'
+    if (!form.address.trim()) return 'Address is required.'
+    return null
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!agreeTerms) return
+
+    try {
+      setIsSubmitting(true)
+      setError(null)
+
+      const payload = {
+        name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        role: selectedRole,
+        address: form.address.trim()
+      }
+
+      const registeredUser = await register(payload)
+      const destination = registeredUser.role === 'resident' ? '/' : '/admin/dashboard'
+      navigate(destination)
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
   return (
     <div className="flex flex-col min-h-screen bg-white font-[Inter,sans-serif]">
       <main className="flex-1 pt-24 pb-16">
@@ -45,7 +111,7 @@ export function Signup() {
                 </p>
               </div>
               <div
-                className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 transform transition-all duration-500 hover:shadow-2xl transform-gpu"
+                className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 transition-all duration-500 hover:shadow-2xl transform-gpu"
                 style={{ willChange: 'transform' }}
               >
                 <div className="p-6 md:p-8 overflow-auto max-h-[64vh] md:max-h-[74vh] lg:max-h-[80vh]">
@@ -109,14 +175,14 @@ export function Signup() {
                       Resident
                     </button>
                     <button
-                      onClick={() => setSelectedRole('worker')}
-                      className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm transition-all duration-300 ${selectedRole === 'worker' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}
+                      onClick={() => setSelectedRole('staff')}
+                      className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm transition-all duration-300 ${selectedRole === 'staff' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}
                     >
                       <Truck
                         size={16}
-                        className={`mr-2 ${selectedRole === 'worker' ? 'text-[#2ECC71]' : ''}`}
+                        className={`mr-2 ${selectedRole === 'staff' ? 'text-[#2ECC71]' : ''}`}
                       />
-                      Worker
+                      Staff
                     </button>
                     <button
                       onClick={() => setSelectedRole('admin')}
@@ -129,9 +195,23 @@ export function Signup() {
                       Admin
                     </button>
                   </div>
+                  {error && (
+                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
                   {/* Signup Form - Step 1 */}
                   {step === 1 && (
-                    <form className="space-y-5">
+                    <form className="space-y-5" onSubmit={(event) => {
+                      event.preventDefault()
+                      const validationError = validateStepOne()
+                      if (validationError) {
+                        setError(validationError)
+                        return
+                      }
+                      setError(null)
+                      setStep(2)
+                    }}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                           <label
@@ -145,6 +225,8 @@ export function Signup() {
                               <User size={16} className="text-gray-400" />
                             </div>
                             <input
+                              value={form.firstName}
+                              onChange={(e) => updateForm('firstName', e.target.value)}
                               type="text"
                               id="firstname"
                               className="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
@@ -164,6 +246,8 @@ export function Signup() {
                               <User size={16} className="text-gray-400" />
                             </div>
                             <input
+                              value={form.lastName}
+                              onChange={(e) => updateForm('lastName', e.target.value)}
                               type="text"
                               id="lastname"
                               className="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
@@ -184,6 +268,8 @@ export function Signup() {
                             <Mail size={16} className="text-gray-400" />
                           </div>
                           <input
+                            value={form.email}
+                            onChange={(e) => updateForm('email', e.target.value)}
                             type="email"
                             id="email"
                             className="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
@@ -203,6 +289,8 @@ export function Signup() {
                             <Lock size={16} className="text-gray-400" />
                           </div>
                           <input
+                            value={form.password}
+                            onChange={(e) => updateForm('password', e.target.value)}
                             type="password"
                             id="password"
                             className="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
@@ -210,7 +298,7 @@ export function Signup() {
                           />
                         </div>
                         <div className="mt-1.5 text-xs text-gray-500">
-                          Password must be at least 8 characters long
+                          Password must be at least 6 characters long
                         </div>
                       </div>
                       <div>
@@ -225,6 +313,8 @@ export function Signup() {
                             <Lock size={16} className="text-gray-400" />
                           </div>
                           <input
+                            value={form.confirmPassword}
+                            onChange={(e) => updateForm('confirmPassword', e.target.value)}
                             type="password"
                             id="confirm-password"
                             className="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
@@ -232,18 +322,26 @@ export function Signup() {
                           />
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setStep(2)}
-                        className="w-full py-3.5 px-4 bg-[#2ECC71] text-white font-medium rounded-lg hover:bg-[#28b463] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
-                      >
-                        Continue
-                      </button>
+                        <button
+                          type="submit"
+                          className="w-full py-3.5 px-4 bg-[#2ECC71] text-white font-medium rounded-lg hover:bg-[#28b463] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                        >
+                          Continue
+                        </button>
                     </form>
                   )}
                   {/* Signup Form - Step 2 */}
                   {step === 2 && (
-                    <form className="space-y-5">
+                    <form className="space-y-5" onSubmit={(event) => {
+                      event.preventDefault()
+                      const validationError = validateStepTwo()
+                      if (validationError) {
+                        setError(validationError)
+                        return
+                      }
+                      setError(null)
+                      setStep(3)
+                    }}>
                       <div>
                         <label
                           htmlFor="phone"
@@ -256,6 +354,8 @@ export function Signup() {
                             <Phone size={16} className="text-gray-400" />
                           </div>
                           <input
+                            value={form.phone}
+                            onChange={(e) => updateForm('phone', e.target.value)}
                             type="tel"
                             id="phone"
                             className="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
@@ -270,8 +370,10 @@ export function Signup() {
                         >
                           Address
                         </label>
-                        <textarea
-                          id="address"
+                          <textarea
+                            value={form.address}
+                            onChange={(e) => updateForm('address', e.target.value)}
+                            id="address"
                           rows={3}
                           className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
                           placeholder="Enter your address"
@@ -286,6 +388,8 @@ export function Signup() {
                             Household Size
                           </label>
                           <select
+                            value={form.householdSize}
+                            onChange={(e) => updateForm('householdSize', e.target.value)}
                             id="household"
                             className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
                           >
@@ -297,15 +401,17 @@ export function Signup() {
                           </select>
                         </div>
                       )}
-                      {selectedRole === 'worker' && (
+                      {selectedRole === 'staff' && (
                         <div>
                           <label
                             htmlFor="worker-id"
                             className="block text-sm font-medium text-gray-700 mb-1.5"
                           >
-                            Worker ID (if available)
+                            Staff ID (if available)
                           </label>
                           <input
+                            value={form.workerId}
+                            onChange={(e) => updateForm('workerId', e.target.value)}
                             type="text"
                             id="worker-id"
                             className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
@@ -322,6 +428,8 @@ export function Signup() {
                             Department
                           </label>
                           <select
+                            value={form.department}
+                            onChange={(e) => updateForm('department', e.target.value)}
                             id="department"
                             className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
                           >
@@ -338,14 +446,16 @@ export function Signup() {
                       <div className="flex justify-between">
                         <button
                           type="button"
-                          onClick={() => setStep(1)}
+                          onClick={() => {
+                            setStep(1)
+                            setError(null)
+                          }}
                           className="py-3.5 px-6 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all duration-300"
                         >
                           Back
                         </button>
                         <button
-                          type="button"
-                          onClick={() => setStep(3)}
+                          type="submit"
                           className="py-3.5 px-6 bg-[#2ECC71] text-white font-medium rounded-lg hover:bg-[#28b463] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                         >
                           Continue
@@ -355,7 +465,7 @@ export function Signup() {
                   )}
                   {/* Signup Form - Step 3 */}
                   {step === 3 && (
-                    <form className="space-y-5">
+                    <form className="space-y-5" onSubmit={handleSubmit}>
                       <div className="p-5 bg-green-50 rounded-lg border border-green-100 text-center">
                         <div className="w-16 h-16 mx-auto bg-[#2ECC71] rounded-full flex items-center justify-center mb-4">
                           <UserPlus size={28} className="text-white" />
@@ -382,21 +492,51 @@ export function Signup() {
                           <div className="flex justify-between">
                             <span className="text-gray-500">Name:</span>
                             <span className="text-gray-800 font-medium">
-                              John Doe
+                              {`${form.firstName} ${form.lastName}`.trim() || '—'}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">Email:</span>
                             <span className="text-gray-800 font-medium">
-                              john.doe@example.com
+                              {form.email || '—'}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">Phone:</span>
                             <span className="text-gray-800 font-medium">
-                              +94 71 234 5678
+                              {form.phone || '—'}
                             </span>
                           </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Address:</span>
+                            <span className="text-gray-800 font-medium">
+                              {form.address || '—'}
+                            </span>
+                          </div>
+                          {selectedRole === 'resident' && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Household Size:</span>
+                              <span className="text-gray-800 font-medium">
+                                {form.householdSize || '—'}
+                              </span>
+                            </div>
+                          )}
+                          {selectedRole === 'staff' && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Staff ID:</span>
+                              <span className="text-gray-800 font-medium">
+                                {form.workerId || '—'}
+                              </span>
+                            </div>
+                          )}
+                          {selectedRole === 'admin' && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Department:</span>
+                              <span className="text-gray-800 font-medium">
+                                {form.department || '—'}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-start">
@@ -430,17 +570,20 @@ export function Signup() {
                       <div className="flex justify-between">
                         <button
                           type="button"
-                          onClick={() => setStep(2)}
+                          onClick={() => {
+                            setStep(2)
+                            setError(null)
+                          }}
                           className="py-3.5 px-6 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all duration-300"
                         >
                           Back
                         </button>
                         <button
                           type="submit"
-                          disabled={!agreeTerms}
-                          className={`py-3.5 px-8 font-medium rounded-lg shadow-md transition-all duration-300 ${agreeTerms ? 'bg-[#FF8C42] text-white hover:bg-[#ff7a29] hover:shadow-lg transform hover:scale-[1.02]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                          disabled={!agreeTerms || isSubmitting}
+                          className={`py-3.5 px-8 font-medium rounded-lg shadow-md transition-all duration-300 ${agreeTerms && !isSubmitting ? 'bg-[#FF8C42] text-white hover:bg-[#ff7a29] hover:shadow-lg transform hover:scale-[1.02]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                         >
-                          Create Account
+                          {isSubmitting ? 'Creating...' : 'Create Account'}
                         </button>
                       </div>
                     </form>

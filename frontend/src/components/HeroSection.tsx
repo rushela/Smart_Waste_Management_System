@@ -22,9 +22,10 @@ export const HeroSection = () => {
               Register Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
-            <Link to="/login" className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg">
+            {/* Use a native anchor as a robust fallback so clicks always navigate even if router context is not mounted correctly */}
+            <a href="/login" className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg">
               Login as Worker/Admin
-            </Link>
+            </a>
           </div>
         </div>
         <div className="md:w-1/2 flex justify-center">

@@ -7,6 +7,12 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['resident', 'staff', 'admin'], default: 'resident' },
   address: String,
+  area: { type: String, index: true }, // area/zone user belongs to
+  userType: { type: String, enum: ['resident', 'business'], default: 'resident' },
+  accountInfo: {
+    accountNumber: String,
+    status: { type: String, enum: ['active', 'inactive'], default: 'active' }
+  },
   wasteBinId: String,
   wasteTypePreference: String,
   paymentInfo: String,
