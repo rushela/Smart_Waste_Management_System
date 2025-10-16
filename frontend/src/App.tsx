@@ -12,7 +12,7 @@ export function App() {
         <FeatureCards />
         <HowItWorks />
         <AnalyticsDashboard />
-        
+        {/* <LoginSection /> */}
       </main>
       <Footer />
     </div>;
