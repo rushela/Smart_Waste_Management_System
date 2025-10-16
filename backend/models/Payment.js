@@ -15,6 +15,19 @@ const PaymentSchema = new mongoose.Schema(
     receiptUrl: { type: String, comment: 'Path or URL to generated digital receipt' },
     emailSent: { type: Boolean, default: false, comment: 'Whether payment confirmation email was sent' },
     remarks: { type: String, maxlength: 255, comment: 'Optional field for error messages or notes'}
+    ,
+    // Optional allocations attached to this payment (keeps minimal invoice referencing)
+    allocations: [
+      {
+        invoiceId: { type: String },
+        invoiceNumber: { type: String },
+        amount: { type: Number, min: 0 },
+      }
+    ],
+    // Voiding support
+    voided: { type: Boolean, default: false, index: true },
+    voidedAt: { type: Date },
+    voidReason: { type: String, maxlength: 255 }
   },
   { timestamps: true }
 );

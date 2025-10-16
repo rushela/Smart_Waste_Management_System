@@ -11,6 +11,8 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/reports', require('./routes/reports'));
+// Payments
+app.use('/api/payments', require('./routes/payments'));
 
 // Health check
 app.get('/health', (req, res) => res.json({ ok: true }));

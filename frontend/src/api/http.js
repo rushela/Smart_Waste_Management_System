@@ -1,34 +1,32 @@
 import axios from 'axios';
 
-// Axios instance with base configuration
-// Vite provides environment variables on import.meta.env. Use VITE_API_URL in .env, else fallback to localhost.
+// Prefer a fully-qualified API URL (with /api) via VITE_API_URL for common setups.
+// Fall back to VITE_API_BASE_URL or a sensible default on localhost:5000
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// Must be a valid 24-hex ObjectId if your authHeader validates strictly
+const X_USER_ID = import.meta.env.VITE_X_USER_ID || '67101a9c7a1d9a4b8d1a9c77';
+
 const http = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: API_BASE,
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Request interceptor for adding auth tokens
-http.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+http.interceptors.request.use((config) => {
+  config.headers = config.headers || {};
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  } else if (!config.headers['x-user-id']) {
+    config.headers['x-user-id'] = X_USER_ID;
   }
-);
+  return config;
+});
 
-// Response interceptor for error handling
 http.interceptors.response.use(
-  (response) => response,
+  (r) => r,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && localStorage.getItem('authToken')) {
       localStorage.removeItem('authToken');
       window.location.href = '/login';
     }

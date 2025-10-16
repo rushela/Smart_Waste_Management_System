@@ -1,6 +1,7 @@
 // controllers/paymentController.js
 const mongoose = require('mongoose');
 const Payment = require('../models/Payment');
+const paymentService = require('../services/payments/paymentService');
 
 const asObjectId = (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
@@ -14,23 +15,25 @@ exports.checkout = async (req, res) => {
     const userId = asObjectId(req.user?.id);
     if (!userId) return res.status(400).json({ message: 'Invalid user id (must be Mongo ObjectId)' });
 
-    const { amount, currency = 'LKR', period, serviceType = 'WASTE_COLLECTION' } = req.body || {};
+    const { amount, currency = 'LKR', period, serviceType = 'WASTE_COLLECTION', allocations } = req.body || {};
     if (typeof amount !== 'number' || amount <= 0) {
       return res.status(400).json({ message: 'amount must be a positive number' });
     }
 
-    // Create payment intent (status=PENDING)
-    const payment = await Payment.create({
+    const payload = {
       user: userId,
       amount,
       currency,
       status: 'PENDING',
       serviceType,
       period,
-      gateway: 'MOCK'
-    });
+      gateway: 'MOCK',
+    };
+    if (Array.isArray(allocations)) payload.allocations = allocations;
 
-    // (Optional) Mock gateway session metadata for your UI
+    const payment = await paymentService.createPayment(payload);
+
+    // mock gateway session metadata
     const gwSessionId = `mock_${payment._id.toString()}`;
     const redirectUrl = `https://mock-gateway.local/checkout/${gwSessionId}`;
 
@@ -69,33 +72,14 @@ exports.confirm = async (req, res) => {
       return res.status(400).json({ message: "status must be 'PAID' or 'FAILED'" });
     }
 
-    const payment = await Payment.findById(paymentId);
-    if (!payment) return res.status(404).json({ message: 'Payment not found' });
-    if (String(payment.user) !== String(userId)) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-
-    // Idempotency: if already finalized, return current state
-    if (['PAID', 'FAILED', 'CANCELLED'].includes(payment.status)) {
-      return res.json({ paymentId: payment._id, status: payment.status, gatewayRef: payment.gatewayRef });
-    }
-
-    payment.status = status;
-    if (status === 'PAID') payment.paidAt = new Date();
-    if (gatewayRef) payment.gatewayRef = gatewayRef;
-
     try {
-      await payment.save();
+      const p = await paymentService.confirmPayment(paymentId, userId, status, gatewayRef);
+      return res.json({ paymentId: p._id, status: p.status, gatewayRef: p.gatewayRef, paidAt: p.paidAt });
     } catch (e) {
-      // Handle duplicate gatewayRef (unique index)
-      if (e?.code === 11000 && e?.keyPattern?.gatewayRef) {
-        return res.status(409).json({ message: 'gatewayRef already used', field: 'gatewayRef' });
-      }
+      if (String(e.message).toLowerCase().includes('forbidden')) return res.status(403).json({ message: 'Forbidden' });
+      if (String(e.message).toLowerCase().includes('not found')) return res.status(404).json({ message: 'Payment not found' });
       throw e;
     }
-
-    // TODO: issue receipt, send email, apply rebate, etc.
-    return res.json({ paymentId: payment._id, status: payment.status, gatewayRef: payment.gatewayRef, paidAt: payment.paidAt });
   } catch (err) {
     console.error('confirm error', err);
     return res.status(500).json({ message: 'Failed to confirm payment' });
@@ -109,13 +93,7 @@ exports.getMine = async (req, res) => {
     if (!userId) return res.status(400).json({ message: 'Invalid user id' });
 
     const { status, limit = 20, offset = 0 } = req.query;
-    const q = { user: userId };
-    if (status) q.status = status;
-
-    const [items, total] = await Promise.all([
-      Payment.find(q).sort({ createdAt: -1 }).skip(Number(offset)).limit(Math.min(Number(limit), 100)),
-      Payment.countDocuments(q)
-    ]);
+    const { items, total } = await paymentService.listByUser(userId, { status, limit, offset });
 
     return res.json({
       total,
@@ -130,7 +108,9 @@ exports.getMine = async (req, res) => {
         serviceType: p.serviceType,
         gatewayRef: p.gatewayRef,
         createdAt: p.createdAt,
-        paidAt: p.paidAt
+        paidAt: p.paidAt,
+        allocations: p.allocations || [],
+        voided: !!p.voided
       }))
     });
   } catch (err) {
@@ -150,7 +130,7 @@ exports.getOne = async (req, res) => {
       return res.status(400).json({ message: 'Invalid payment id' });
     }
 
-    const p = await Payment.findById(paymentId);
+    const p = await paymentService.findById(paymentId);
     if (!p) return res.status(404).json({ message: 'Payment not found' });
     if (String(p.user) !== String(userId)) return res.status(403).json({ message: 'Forbidden' });
 
@@ -166,6 +146,8 @@ exports.getOne = async (req, res) => {
         gatewayRef: p.gatewayRef,
         receiptUrl: p.receiptUrl,
         emailSent: p.emailSent,
+        allocations: p.allocations || [],
+        voided: !!p.voided,
         createdAt: p.createdAt,
         paidAt: p.paidAt
       }
@@ -173,5 +155,44 @@ exports.getOne = async (req, res) => {
   } catch (err) {
     console.error('getOne error', err);
     return res.status(500).json({ message: 'Failed to fetch payment' });
+  }
+};
+
+// PUT /payments/:id - update editable fields such as notes, allocations
+exports.update = async (req, res) => {
+  try {
+    const userId = asObjectId(req.user?.id);
+    if (!userId) return res.status(400).json({ message: 'Invalid user id' });
+    const paymentId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(paymentId)) return res.status(400).json({ message: 'Invalid payment id' });
+
+    const allowed = ['notes', 'allocations', 'remarks'];
+    const updates = {};
+    allowed.forEach(k => { if (k in req.body) updates[k] = req.body[k]; });
+
+    const updated = await paymentService.updatePayment(paymentId, userId, updates);
+    if (!updated) return res.status(404).json({ message: 'Payment not found' });
+    return res.json({ paymentId: updated._id, status: updated.status, allocations: updated.allocations || [] });
+  } catch (err) {
+    console.error('payment update error', err);
+    if (String(err.message).toLowerCase().includes('forbidden')) return res.status(403).json({ message: 'Forbidden' });
+    return res.status(500).json({ message: 'Failed to update payment' });
+  }
+};
+
+// POST /payments/:id/void - mark payment voided
+exports.void = async (req, res) => {
+  try {
+    const userId = asObjectId(req.user?.id);
+    if (!userId) return res.status(400).json({ message: 'Invalid user id' });
+    const paymentId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(paymentId)) return res.status(400).json({ message: 'Invalid payment id' });
+    const { reason } = req.body || {};
+    const p = await paymentService.voidPayment(paymentId, userId, reason);
+    return res.json({ paymentId: p._id, voided: !!p.voided, voidedAt: p.voidedAt });
+  } catch (err) {
+    console.error('void payment error', err);
+    if (String(err.message).toLowerCase().includes('forbidden')) return res.status(403).json({ message: 'Forbidden' });
+    return res.status(500).json({ message: 'Failed to void payment' });
   }
 };

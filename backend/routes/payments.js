@@ -12,5 +12,7 @@ router.post('/checkout', ctrl.checkout);     // POST body: { amount, currency?, 
 router.post('/:id/confirm', ctrl.confirm);   // POST body: { status: 'PAID' | 'FAILED', gatewayRef? }
 router.get('/me', ctrl.getMine);             // list my payments
 router.get('/:id', ctrl.getOne);             // one payment
+router.put('/:id', ctrl.update);             // update payment (notes, allocations)
+router.post('/:id/void', ctrl.void);         // void a payment
 
 module.exports = router;

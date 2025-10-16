@@ -45,6 +45,19 @@ const seedUsers = [
   ];
   await PaymentRecord.insertMany(payDocs);
 
+  // Create sample Payment (Payment model) documents if Payment model exists
+  try {
+    const Payment = require('../models/Payment');
+    await Payment.deleteMany();
+    const paymentDocs = [
+      { user: savedUsers[0]._id, amount: 825.5, currency: 'LKR', status: 'PENDING', serviceType: 'WASTE_COLLECTION', period: '2023-10', allocations: [{ invoiceId: 'INV-2023-1028', invoiceNumber: 'INV-2023-1028', amount: 500 }, { invoiceId: 'INV-2023-0915', invoiceNumber: 'INV-2023-0915', amount: 325.5 }] },
+      { user: savedUsers[0]._id, amount: 1200.0, currency: 'LKR', status: 'PAID', serviceType: 'WASTE_COLLECTION', period: '2023-09' }
+    ];
+    await Payment.insertMany(paymentDocs);
+  } catch (e) {
+    console.warn('Payment model not present or failed to seed:', e.message);
+  }
+
   console.log('Seeded users, collections, and payments');
   mongoose.disconnect();
 })();

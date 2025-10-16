@@ -52,4 +52,9 @@ app.get('/api/users', (req, res) => {
   return res.json(users.map(u => ({ id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, role: u.role })));
 });
 
+// Mount payments routes (dev + prod)
+// routes/payments.js defines: POST /checkout, POST /:id/confirm, GET /me, GET /:id
+const paymentsRouter = require('./routes/payments');
+app.use('/api/payments', paymentsRouter);
+
 app.listen(PORT, () => console.log(`Backend dev server listening on http://localhost:${PORT}`));
