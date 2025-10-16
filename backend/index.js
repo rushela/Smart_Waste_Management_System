@@ -52,4 +52,12 @@ app.get('/api/users', (req, res) => {
   return res.json(users.map(u => ({ id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, role: u.role })));
 });
 
+app.use('/api/payments', require('./routes/payments'));
+
+// Optional centralized error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ message: 'Something went wrong' });
+});
+
 app.listen(PORT, () => console.log(`Backend dev server listening on http://localhost:${PORT}`));
