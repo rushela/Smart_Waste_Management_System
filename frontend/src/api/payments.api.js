@@ -1,128 +1,73 @@
 import http from './http.js';
 
-// Mock data for frontend development
-const mockPayments = [
-  {
-    _id: '1',
-    amount: 82.50,
-    status: 'completed',
-    type: 'payment',
-    description: 'Monthly Waste Collection Service',
-    date: '2024-01-15T10:30:00Z',
-    method: 'credit_card',
-    cardLast4: '4242',
-    transactionId: 'ECO-7842-001',
-    ecoImpact: {
-      co2Saved: '2.5kg',
-      treesSupported: 1,
-      recyclingCredit: '5.25'
-    }
-  },
-  {
-    _id: '2',
-    amount: 45.00,
-    status: 'pending',
-    type: 'payment',
-    description: 'Green Bin Maintenance',
-    date: '2024-01-10T14:20:00Z',
-    method: 'bank_transfer',
-    transactionId: 'ECO-7842-002'
-  }
-];
-
-// API functions with proper error handling and TypeScript-like interfaces
+// paymentsAPI - wrapper around HTTP endpoints. Keeps compatibility with
+// previous frontend expectations: when the server returns an array we'll
+// compute a small envelope; when it returns an object we'll forward it.
 export const paymentsAPI = {
   /**
-   * Fetch user's payment history
+   * Fetch user's payment history / dashboard data
+   * Returns: { data: [], total: number, outstandingBalance: number } or server-provided object
    */
   listMine: async () => {
     try {
-      // const response = await http.get('/payments');
-      // return response.data;
-      
-      // Mock implementation
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            data: mockPayments,
-            total: mockPayments.length,
-            outstandingBalance: 127.50
-          });
-        }, 500);
-      });
+      const res = await http.get('/payments');
+      const raw = res.data;
+      if (Array.isArray(raw)) {
+        const data = raw;
+        const outstandingBalance = data
+          .filter((p) => (p.status || '').toLowerCase() === 'pending')
+          .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        return {
+          data,
+          total: data.length,
+          outstandingBalance
+        };
+      }
+      // server returned an object (e.g., { data: [...], total, outstandingBalance })
+      return raw;
     } catch (error) {
-      throw new Error(`Failed to fetch payments: ${error.message}`);
+      console.error('paymentsAPI.listMine error:', error);
+      throw error;
     }
   },
 
   /**
-   * Create a new payment checkout session
+   * Create a new checkout session
+   * Expects paymentData: { amount, returnUrl, saveCard?, method? }
    */
   checkout: async (paymentData) => {
     try {
-      // const response = await http.post('/payments/checkout', paymentData);
-      // return response.data;
-      
-      // Mock implementation
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            paymentId: `pay_${Date.now()}`,
-            redirectUrl: `/mock-gateway?pid=pay_${Date.now()}&amount=${paymentData.amount}`,
-            amount: paymentData.amount
-          });
-        }, 1000);
-      });
+      const res = await http.post('/payments/checkout', paymentData);
+      return res.data;
     } catch (error) {
-      throw new Error(`Checkout failed: ${error.message}`);
+      console.error('paymentsAPI.checkout error:', error);
+      throw error;
     }
   },
 
   /**
-   * Get specific payment details
+   * Get payment by id or internal id
    */
   get: async (paymentId) => {
     try {
-      // const response = await http.get(`/payments/${paymentId}`);
-      // return response.data;
-      
-      // Mock implementation
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          const payment = mockPayments.find(p => p._id === paymentId);
-          if (payment) {
-            resolve(payment);
-          } else {
-            reject(new Error('Payment not found'));
-          }
-        }, 500);
-      });
+      const res = await http.get(`/payments/${paymentId}`);
+      return res.data;
     } catch (error) {
-      throw new Error(`Failed to fetch payment: ${error.message}`);
+      console.error('paymentsAPI.get error:', error);
+      throw error;
     }
   },
 
   /**
-   * Confirm payment status (for mock gateway)
+   * Confirm a payment (optional endpoint used after client-side flows)
    */
   confirm: async (paymentId, status) => {
     try {
-      // const response = await http.post(`/payments/${paymentId}/confirm`, { status });
-      // return response.data;
-      
-      // Mock implementation
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            paymentId,
-            status,
-            transactionId: `ECO-${Date.now()}`
-          });
-        }, 800);
-      });
+      const res = await http.post(`/payments/${paymentId}/confirm`, { status });
+      return res.data;
     } catch (error) {
-      throw new Error(`Confirmation failed: ${error.message}`);
+      console.error('paymentsAPI.confirm error:', error);
+      throw error;
     }
   }
 };
