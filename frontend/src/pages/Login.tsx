@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, Truck, BarChart4, Lock, Mail, ArrowLeft } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 // Particle background removed from auth page to prevent layout jitter
 
-type Role = 'resident' | 'worker' | 'admin'
+type Role = 'resident' | 'staff' | 'admin'
 
 export function Login() {
   const navigate = useNavigate()
+  const { login, logout } = useAuth()
   const [role, setRole] = useState<Role>('resident')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   function validate() {
     if (!email) return 'Email is required.'
@@ -21,21 +24,32 @@ export function Login() {
     return null
   }
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     const v = validate()
     if (v) {
       setError(v)
       return
     }
-    setError(null)
-    // Placeholder: perform auth request here. We'll simulate success.
-    setTimeout(() => {
-      // After successful login, route to dashboard based on role
-      if (role === 'worker') navigate('/dashboard/worker')
-      else if (role === 'admin') navigate('/dashboard/admin')
-      else navigate('/dashboard')
-    }, 400)
+    
+    try {
+      setIsLoading(true)
+      setError(null)
+      const authenticatedUser = await login(email, password)
+
+      if (authenticatedUser.role !== role) {
+        setError('Selected role does not match your account role.')
+        logout()
+        return
+      }
+
+      const destination = authenticatedUser.role === 'resident' ? '/' : '/admin/dashboard'
+      navigate(destination)
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -75,17 +89,17 @@ export function Login() {
                         <User size={16} className={`mr-2 ${role === 'resident' ? 'text-[#2ECC71]' : ''}`} />
                         Resident
                       </label>
-                      <label className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm cursor-pointer ${role === 'worker' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}>
+                      <label className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm cursor-pointer ${role === 'staff' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}>
                         <input
                           type="radio"
                           name="role"
-                          value="worker"
-                          checked={role === 'worker'}
-                          onChange={() => setRole('worker')}
+                          value="staff"
+                          checked={role === 'staff'}
+                          onChange={() => setRole('staff')}
                           className="sr-only"
                         />
-                        <Truck size={16} className={`mr-2 ${role === 'worker' ? 'text-[#2ECC71]' : ''}`} />
-                        Worker
+                        <Truck size={16} className={`mr-2 ${role === 'staff' ? 'text-[#2ECC71]' : ''}`} />
+                        Staff
                       </label>
                       <label className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm cursor-pointer ${role === 'admin' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}>
                         <input
@@ -155,7 +169,13 @@ export function Login() {
 
                     {error && <div className="text-sm text-red-600">{error}</div>}
 
-                    <button type="submit" className="w-full py-3.5 px-4 bg-[#FF8C42] text-white font-medium rounded-lg hover:bg-[#ff7a29] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] my-4">Login</button>
+                    <button 
+                      type="submit" 
+                      disabled={isLoading}
+                      className="w-full py-3.5 px-4 bg-[#FF8C42] text-white font-medium rounded-lg hover:bg-[#ff7a29] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] my-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? 'Logging in...' : 'Login'}
+                    </button>
                   </form>
 
                   <div className="mt-8 text-center">

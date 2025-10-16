@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 4000;
 
 // Optional MongoDB connection
 if (process.env.MONGO_URI) {
-  mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.warn('MongoDB connection error:', err));
 } else {
@@ -50,6 +50,30 @@ app.post('/api/auth/login', (req, res) => {
 // Simple user listing (dev only)
 app.get('/api/users', (req, res) => {
   return res.json(users.map(u => ({ id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, role: u.role })));
+});
+
+// Auth and Users routes (full-featured when DB and JWT are configured)
+try {
+  app.use('/api/auth', require('./routes/auth'));
+  app.use('/api/users', require('./routes/users'));
+} catch (e) {
+  console.warn('Auth/Users routes not available yet:', e.message);
+}
+
+// Health check
+app.get('/health', (req, res) => res.json({ ok: true }));
+
+// Reports API (protected via role-based middleware within the router)
+try {
+  app.use('/api/reports', require('./routes/reports'));
+} catch (e) {
+  console.warn('Reports routes not available yet:', e.message);
+}
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ message: err.message || 'Server error' });
 });
 
 app.listen(PORT, () => console.log(`Backend dev server listening on http://localhost:${PORT}`));
