@@ -19,10 +19,12 @@ jest.mock('../models/PaymentRecord', () => ({
   findById: jest.fn(async () => ({ _id: 'recid' }))
 }));
 jest.mock('../models/User', () => ({
-  findByIdAndUpdate: jest.fn(async () => ({}))
+  findByIdAndUpdate: jest.fn(async () => ({})),
+  findById: jest.fn(async () => ({ _id: 'u1', role: 'resident' })),
+  create: jest.fn(async (doc) => ({ _id: doc?._id || 'u1', ...doc }))
 }));
 
-const app = require('../app');
+const app = require('..');
 
 describe('Payments', () => {
   test('calculate charge (weight_based)', async () => {

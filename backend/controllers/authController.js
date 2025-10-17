@@ -55,3 +55,31 @@ exports.login = async (req, res, next) => {
     next(err);
   }
 };
+
+// Get profile
+exports.getProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id || req.user.id).select('-password');
+    res.json({ user });
+  } catch (err) { next(err); }
+};
+
+// Update profile
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const updates = {};
+    const fields = ['name', 'address', 'area', 'userType', 'paymentInfo'];
+    for (const f of fields) if (req.body[f] !== undefined) updates[f] = req.body[f];
+    const user = await User.findByIdAndUpdate(req.user._id || req.user.id, updates, { new: true }).select('-password');
+    res.json({ user });
+  } catch (err) { next(err); }
+};
+
+// Admin delete user
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    await User.findByIdAndDelete(userId);
+    res.json({ success: true });
+  } catch (err) { next(err); }
+};

@@ -2,21 +2,46 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// For dev mode: use a dummy MongoDB ObjectId format
-// In production, this would come from authentication after login
-// This is a valid MongoDB ObjectId format that won't cause validation errors
-const DEV_USER_ID = '507f1f77bcf86cd799439011'; // Valid ObjectId format for dev
-
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'x-user-id': DEV_USER_ID, // Dev mode: pass user ID directly
   },
 });
 
-// Auth removed: no token headers or 401 redirects
+// Add request interceptor to include auth token or dev user ID
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Use JWT token if available (user is logged in)
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // Fallback to dev user ID if no token (for backward compatibility)
+      const DEV_USER_ID = '507f1f77bcf86cd799439011';
+      config.headers['x-user-id'] = DEV_USER_ID;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid - redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Report APIs
 export const reportService = {

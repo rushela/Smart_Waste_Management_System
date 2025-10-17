@@ -1,26 +1,12 @@
 import { FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  User,
-  Truck,
-  BarChart4,
-  Lock,
-  Mail,
-  CheckCircle,
-  ArrowLeft,
-  UserPlus,
-  Phone,
-} from 'lucide-react'
-// Particle background removed from auth page to prevent layout jitter
-// Auth removed
-
-type Role = 'resident' | 'staff' | 'admin'
+import { User, Lock, Mail, CheckCircle, ArrowLeft, UserPlus, Phone } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 export function Signup() {
   const navigate = useNavigate()
-  // No register; we'll navigate directly
+  const { register } = useAuth()
 
-  const [selectedRole, setSelectedRole] = useState<Role>('resident')
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({
@@ -65,17 +51,17 @@ export function Signup() {
       setIsSubmitting(true)
       setError(null)
 
-      const payload = {
+      const payload: Parameters<typeof register>[0] = {
         name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
-        role: selectedRole,
+        role: 'resident',
         address: form.address.trim()
       }
 
-  // Simulate success and navigate directly
-  const destination = payload.role === 'resident' ? '/' : '/admin/dashboard'
-      navigate(destination)
+      // Call backend register API via AuthContext
+  await register(payload)
+  navigate('/')
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
@@ -162,38 +148,9 @@ export function Signup() {
                       <span className="text-xs mt-1 text-gray-600">Verify</span>
                     </div>
                   </div>
-                  {/* Role Selector */}
-                  <div className="flex mb-8 bg-gray-100 p-1 rounded-lg">
-                    <button
-                      onClick={() => setSelectedRole('resident')}
-                      className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm transition-all duration-300 ${selectedRole === 'resident' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}
-                    >
-                      <User
-                        size={16}
-                        className={`mr-2 ${selectedRole === 'resident' ? 'text-[#2ECC71]' : ''}`}
-                      />
-                      Resident
-                    </button>
-                    <button
-                      onClick={() => setSelectedRole('staff')}
-                      className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm transition-all duration-300 ${selectedRole === 'staff' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}
-                    >
-                      <Truck
-                        size={16}
-                        className={`mr-2 ${selectedRole === 'staff' ? 'text-[#2ECC71]' : ''}`}
-                      />
-                      Staff
-                    </button>
-                    <button
-                      onClick={() => setSelectedRole('admin')}
-                      className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center text-sm transition-all duration-300 ${selectedRole === 'admin' ? 'bg-white text-gray-800 shadow-sm font-medium' : 'text-gray-600 hover:bg-gray-200'}`}
-                    >
-                      <BarChart4
-                        size={16}
-                        className={`mr-2 ${selectedRole === 'admin' ? 'text-[#2ECC71]' : ''}`}
-                      />
-                      Admin
-                    </button>
+                  {/* Residents only notice */}
+                  <div className="mb-8 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg p-3">
+                    Registration is open for residents only. Staff and admin accounts are created by administrators.
                   </div>
                   {error && (
                     <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -379,70 +336,26 @@ export function Signup() {
                           placeholder="Enter your address"
                         ></textarea>
                       </div>
-                      {selectedRole === 'resident' && (
-                        <div>
-                          <label
-                            htmlFor="household"
-                            className="block text-sm font-medium text-gray-700 mb-1.5"
-                          >
-                            Household Size
-                          </label>
-                          <select
-                            value={form.householdSize}
-                            onChange={(e) => updateForm('householdSize', e.target.value)}
-                            id="household"
-                            className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
-                          >
-                            <option value="">Select household size</option>
-                            <option value="1">1 person</option>
-                            <option value="2-3">2-3 people</option>
-                            <option value="4-5">4-5 people</option>
-                            <option value="6+">6 or more people</option>
-                          </select>
-                        </div>
-                      )}
-                      {selectedRole === 'staff' && (
-                        <div>
-                          <label
-                            htmlFor="worker-id"
-                            className="block text-sm font-medium text-gray-700 mb-1.5"
-                          >
-                            Staff ID (if available)
-                          </label>
-                          <input
-                            value={form.workerId}
-                            onChange={(e) => updateForm('workerId', e.target.value)}
-                            type="text"
-                            id="worker-id"
-                            className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
-                            placeholder="Enter your worker ID"
-                          />
-                        </div>
-                      )}
-                      {selectedRole === 'admin' && (
-                        <div>
-                          <label
-                            htmlFor="department"
-                            className="block text-sm font-medium text-gray-700 mb-1.5"
-                          >
-                            Department
-                          </label>
-                          <select
-                            value={form.department}
-                            onChange={(e) => updateForm('department', e.target.value)}
-                            id="department"
-                            className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
-                          >
-                            <option value="">Select department</option>
-                            <option value="operations">Operations</option>
-                            <option value="planning">Planning</option>
-                            <option value="analytics">Analytics</option>
-                            <option value="customer-service">
-                              Customer Service
-                            </option>
-                          </select>
-                        </div>
-                      )}
+                      <div>
+                        <label
+                          htmlFor="household"
+                          className="block text-sm font-medium text-gray-700 mb-1.5"
+                        >
+                          Household Size
+                        </label>
+                        <select
+                          value={form.householdSize}
+                          onChange={(e) => updateForm('householdSize', e.target.value)}
+                          id="household"
+                          className="block w-full rounded-lg border border-gray-300 bg-gray-50 py-3.5 px-4 text-gray-900 focus:border-[#2ECC71] focus:ring-[#2ECC71] focus:ring-1 focus:outline-none text-sm transition-all duration-300"
+                        >
+                          <option value="">Select household size</option>
+                          <option value="1">1 person</option>
+                          <option value="2-3">2-3 people</option>
+                          <option value="4-5">4-5 people</option>
+                          <option value="6+">6 or more people</option>
+                        </select>
+                      </div>
                       <div className="flex justify-between">
                         <button
                           type="button"
@@ -485,9 +398,7 @@ export function Signup() {
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-500">Account Type:</span>
-                            <span className="text-gray-800 font-medium capitalize">
-                              {selectedRole}
-                            </span>
+                            <span className="text-gray-800 font-medium capitalize">resident</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">Name:</span>
@@ -513,30 +424,12 @@ export function Signup() {
                               {form.address || '—'}
                             </span>
                           </div>
-                          {selectedRole === 'resident' && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Household Size:</span>
-                              <span className="text-gray-800 font-medium">
-                                {form.householdSize || '—'}
-                              </span>
-                            </div>
-                          )}
-                          {selectedRole === 'staff' && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Staff ID:</span>
-                              <span className="text-gray-800 font-medium">
-                                {form.workerId || '—'}
-                              </span>
-                            </div>
-                          )}
-                          {selectedRole === 'admin' && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Department:</span>
-                              <span className="text-gray-800 font-medium">
-                                {form.department || '—'}
-                              </span>
-                            </div>
-                          )}
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Household Size:</span>
+                            <span className="text-gray-800 font-medium">
+                              {form.householdSize || '—'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-start">

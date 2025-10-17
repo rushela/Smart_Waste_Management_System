@@ -352,24 +352,42 @@ exports.createPayback = async (req, res) => {
   }
 };
 
-// GET /api/payments/summary -> totals for income, paybacks, outstanding
+// GET /api/payments/summary -> totals for income, paybacks, outstanding for current user
 exports.summary = async (req, res) => {
-  const match = {};
-  if (req.query.city) match.city = req.query.city;
-  const totals = await PaymentRecord.aggregate([
-    { $match: match },
-    { $group: { _id: '$type', total: { $sum: '$amount' } } },
-    { $project: { _id: 0, type: '$_id', total: 1 } }
-  ]);
-  const outstandingAgg = await PaymentRecord.aggregate([
-    { $match: { ...match, status: 'pending' } },
-    { $group: { _id: null, totalOutstanding: { $sum: '$amount' } } },
-    { $project: { _id: 0, totalOutstanding: 1 } }
-  ]);
-  res.json({
-    totals,
-    outstanding: outstandingAgg[0]?.totalOutstanding || 0
-  });
+  try {
+    const rawUserId = req.user?.id;
+    if (!rawUserId) {
+      return res.json({ totals: [], outstanding: 0 });
+    }
+    
+    const userId = asObjectId(rawUserId);
+    if (!userId) {
+      return res.json({ totals: [], outstanding: 0 });
+    }
+    
+    const match = { userId };
+    if (req.query.city) match.city = req.query.city;
+    
+    const totals = await PaymentRecord.aggregate([
+      { $match: match },
+      { $group: { _id: '$type', total: { $sum: '$amount' } } },
+      { $project: { _id: 0, type: '$_id', total: 1 } }
+    ]);
+    
+    const outstandingAgg = await PaymentRecord.aggregate([
+      { $match: { ...match, status: 'pending' } },
+      { $group: { _id: null, totalOutstanding: { $sum: '$amount' } } },
+      { $project: { _id: 0, totalOutstanding: 1 } }
+    ]);
+    
+    res.json({
+      totals,
+      outstanding: outstandingAgg[0]?.totalOutstanding || 0
+    });
+  } catch (e) {
+    console.error('summary error', e);
+    res.status(500).json({ message: 'Failed to get summary' });
+  }
 };
 
 // POST /api/payments/calc -> calculate charge by pricing model

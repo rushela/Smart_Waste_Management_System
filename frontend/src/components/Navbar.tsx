@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Recycle, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  
+  const isStaffOrAdmin = user?.role === 'staff' || user?.role === 'admin';
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -42,12 +47,40 @@ export const Navbar = () => {
             <Link to="/payments" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
               Payments 💳
             </Link>
+            
+            {user && (
+              <Link to="/issues" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
+                📝 Report Issue
+              </Link>
+            )}
+            
+            {isStaffOrAdmin && (
+              <Link to="/admin/issues" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
+                ⚙️ Manage Issues
+              </Link>
+            )}
+            
             <Link to="/admin/pricing" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
               Admin Panel
             </Link>
-            <a href="/login" className="font-medium whitespace-nowrap text-white bg-[#FF8C42] hover:bg-[#e67e3a] px-4 py-2 rounded-full transition-colors flex-shrink-0">
-              Login
-            </a>
+            
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <Link to="/profile" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
+                  👤 {user.name}
+                </Link>
+                <button 
+                  onClick={logout}
+                  className="font-medium whitespace-nowrap text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full transition-colors flex-shrink-0"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <a href="/login" className="font-medium whitespace-nowrap text-white bg-[#FF8C42] hover:bg-[#e67e3a] px-4 py-2 rounded-full transition-colors flex-shrink-0">
+                Login
+              </a>
+            )}
           </nav>
           {/* Mobile Menu Button */}
           <button className="md:hidden text-[#2ECC71]" onClick={toggleMenu}>
@@ -73,12 +106,40 @@ export const Navbar = () => {
             <Link to="/payments" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
               Payments 💳
             </Link>
+            
+            {user && (
+              <Link to="/issues" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
+                📝 Report Issue
+              </Link>
+            )}
+            
+            {isStaffOrAdmin && (
+              <Link to="/admin/issues" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
+                ⚙️ Manage Issues
+              </Link>
+            )}
+            
             <Link to="/admin/pricing" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
               Admin Panel
             </Link>
-            <Link to="/login" className="font-medium text-white bg-[#FF8C42] hover:bg-[#e67e3a] px-4 py-2 rounded-full transition-colors text-center">
-              Login
-            </Link>
+            
+            {user ? (
+              <>
+                <Link to="/profile" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
+                  👤 Profile ({user.name})
+                </Link>
+                <button
+                  onClick={logout}
+                  className="font-medium text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full transition-colors text-center"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="font-medium text-white bg-[#FF8C42] hover:bg-[#e67e3a] px-4 py-2 rounded-full transition-colors text-center">
+                Login
+              </Link>
+            )}
           </div>
         </div>}
     </header>;

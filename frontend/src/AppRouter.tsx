@@ -4,7 +4,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { App } from "./App.jsx";
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
-// Auth removed: no provider or guards
+import { ProfilePage } from './pages/ProfilePage';
+import { ReportIssuePage } from './pages/ReportIssuePage';
+import { AdminIssuePage } from './pages/AdminIssuePage';
 import { AdminLayout } from './components/AdminLayout';
 import { Dashboard } from './pages/Dashboard';
 import { WasteReports } from './pages/WasteReports';
@@ -33,6 +35,10 @@ export function AppRouter() {
           <Route path="/" element={<App />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/issues" element={<ReportIssuePage />} />
+          <Route path="/admin/issues" element={<AdminIssuePage />} />
+          
           {/* Payments */}
           <Route path="/payment" element={<PaymentDashboard />} />
           <Route path="/checkout" element={<PaymentCheckout />} />
