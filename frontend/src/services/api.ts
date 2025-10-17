@@ -10,31 +10,7 @@ const api = axios.create({
   },
 });
 
-// Add token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Handle 401 errors (unauthorized)
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid, redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+// Auth removed: no token headers or 401 redirects
 
 // Report APIs
 export const reportService = {
@@ -70,18 +46,19 @@ export const reportService = {
 
   // Export
   exportPdf: () => {
-    window.open(`${API_BASE_URL}/reports/export/pdf?token=${localStorage.getItem('token')}`, '_blank');
+    window.open(`${API_BASE_URL}/reports/export/pdf`, '_blank');
   },
 
   exportExcel: () => {
-    window.open(`${API_BASE_URL}/reports/export/excel?token=${localStorage.getItem('token')}`, '_blank');
+    window.open(`${API_BASE_URL}/reports/export/excel`, '_blank');
   },
 };
 
 // User APIs
 export const userService = {
-  getProfile: () => api.get('/users/me'),
-  updateProfile: (data: any) => api.put('/users/me', data),
+  // Placeholder endpoints; no auth
+  getProfile: () => Promise.resolve({ data: { name: 'Guest' } }),
+  updateProfile: (data: any) => Promise.resolve({ data }),
   listUsers: (params?: { page?: number; limit?: number; search?: string }) =>
     api.get('/users', { params }),
 };

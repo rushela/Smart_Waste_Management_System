@@ -1,10 +1,10 @@
 // React import not required with the new JSX transform
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { App } from "./App";
+// @ts-ignore: jsx module without types
+import { App } from "./App.jsx";
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
-import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
+// Auth removed: no provider or guards
 import { AdminLayout } from './components/AdminLayout';
 import { Dashboard } from './pages/Dashboard';
 import { WasteReports } from './pages/WasteReports';
@@ -24,8 +24,7 @@ import TransactionHistory from './payment/TransactionHistory.jsx';
 import PaymentStatus from './payment/PaymentStatus.jsx';
 
 export function AppRouter() {
-  return <AuthProvider>
-      <BrowserRouter>
+  return <BrowserRouter>
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/login" element={<Login />} />
@@ -37,11 +36,7 @@ export function AppRouter() {
           <Route path="/payment/status/:id" element={<PaymentStatus />} />
           
           {/* Admin Dashboard Routes */}
-          <Route path="/admin" element={
-            <ProtectedRoute roles={['admin', 'staff']}>
-              <AdminLayout />
-            </ProtectedRoute>
-          }>
+          <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="waste-reports" element={<WasteReports />} />
             <Route path="user-reports" element={<UserReports />} />
@@ -49,6 +44,5 @@ export function AppRouter() {
             <Route path="custom-reports" element={<CustomReports />} />
           </Route>
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>;
+      </BrowserRouter>;
 }

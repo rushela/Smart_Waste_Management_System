@@ -1,17 +1,17 @@
 const ReportConfig = require('../../models/ReportConfig');
 const { NotFoundError } = require('../../utils/errors');
 
-async function createReportConfig({ payload, userId }) {
-  return ReportConfig.create({ ...payload, createdBy: userId });
+async function createReportConfig({ payload }) {
+  return ReportConfig.create({ ...payload });
 }
 
-async function listReportConfigs({ userId }) {
-  return ReportConfig.find({ createdBy: userId });
+async function listReportConfigs() {
+  return ReportConfig.find({});
 }
 
-async function updateReportConfig({ configId, userId, updates }) {
+async function updateReportConfig({ configId, updates }) {
   const config = await ReportConfig.findOneAndUpdate(
-    { _id: configId, createdBy: userId },
+    { _id: configId },
     updates,
     { new: true }
   );
@@ -23,8 +23,8 @@ async function updateReportConfig({ configId, userId, updates }) {
   return config;
 }
 
-async function deleteReportConfig({ configId, userId }) {
-  const result = await ReportConfig.deleteOne({ _id: configId, createdBy: userId });
+async function deleteReportConfig({ configId }) {
+  const result = await ReportConfig.deleteOne({ _id: configId });
 
   if (result.deletedCount === 0) {
     throw new NotFoundError('Config not found', { configId });
