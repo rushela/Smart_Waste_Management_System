@@ -14,18 +14,19 @@
   "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-validator": "^7.2.0",
-  "json2csv": "^5.0.7",
+    "json2csv": "^5.0.7",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.1",
     "pdfkit": "^0.15.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "supertest": "^7.0.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "supertest": "^7.0.0"
   }
 }

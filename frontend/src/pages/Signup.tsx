@@ -12,13 +12,13 @@ import {
   Phone,
 } from 'lucide-react'
 // Particle background removed from auth page to prevent layout jitter
-// Auth removed
+import { useAuth } from '../context/AuthContext'
 
 type Role = 'resident' | 'staff' | 'admin'
 
 export function Signup() {
   const navigate = useNavigate()
-  // No register; we'll navigate directly
+  const { register } = useAuth()
 
   const [selectedRole, setSelectedRole] = useState<Role>('resident')
   const [agreeTerms, setAgreeTerms] = useState(false)
@@ -65,16 +65,31 @@ export function Signup() {
       setIsSubmitting(true)
       setError(null)
 
-      const payload = {
+      // Build payload with all required fields
+      const payload: any = {
         name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
         role: selectedRole,
-        address: form.address.trim()
+        address: form.address.trim(),
+        phone: form.phone.trim()
       }
 
-  // Simulate success and navigate directly
-  const destination = payload.role === 'resident' ? '/' : '/admin/dashboard'
+      // Add role-specific fields
+      if (selectedRole === 'resident' && form.householdSize) {
+        payload.householdSize = form.householdSize
+      }
+
+      if (selectedRole === 'staff' && form.workerId) {
+        payload.staffId = form.workerId.trim()
+      }
+
+      if (selectedRole === 'admin' && form.department) {
+        payload.department = form.department
+      }
+
+      const registeredUser = await register(payload)
+      const destination = registeredUser.role === 'resident' ? '/' : '/admin/dashboard'
       navigate(destination)
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.')

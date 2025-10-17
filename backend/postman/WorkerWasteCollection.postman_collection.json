@@ -1,0 +1,422 @@
+{
+  "info": {
+    "name": "Worker Waste Collection API",
+    "description": "Complete API collection for worker waste collection module with residents, bins, and collections",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Residents",
+      "item": [
+        {
+          "name": "Get All Residents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/residents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "residents"]
+            }
+          }
+        },
+        {
+          "name": "Get Resident by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/residents/{{residentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "residents", "{{residentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Resident",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Resident\",\n  \"address\": \"123 Test Street, Test City\",\n  \"email\": \"test.resident@email.com\",\n  \"phone\": \"+1-555-9999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/residents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "residents"]
+            }
+          }
+        },
+        {
+          "name": "Update Resident",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Resident Name\",\n  \"phone\": \"+1-555-8888\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/residents/{{residentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "residents", "{{residentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Resident",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/residents/{{residentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "residents", "{{residentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bins",
+      "item": [
+        {
+          "name": "Get All Bins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bins"]
+            }
+          }
+        },
+        {
+          "name": "Get Bin by ID (or binID)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/BIN-R001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bins", "BIN-R001"]
+            }
+          }
+        },
+        {
+          "name": "Get Bins by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bins"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Bin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"binID\": \"BIN-TEST001\",\n  \"resident\": \"{{residentId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bins",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bins"]
+            }
+          }
+        },
+        {
+          "name": "Update Bin Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"emptied\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/{{binId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bins", "{{binId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Bin",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/{{binId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bins", "{{binId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collections",
+      "item": [
+        {
+          "name": "Get All Collections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/collections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections"]
+            }
+          }
+        },
+        {
+          "name": "Get Collection by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/collections/{{collectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections", "{{collectionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Filter Collections by Bin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/collections?binID=BIN-R001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections"],
+              "query": [
+                {
+                  "key": "binID",
+                  "value": "BIN-R001"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Collections by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/collections?startDate=2025-10-01&endDate=2025-10-17",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-10-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-10-17"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Collection - Recyclable",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"binID\": \"BIN-R001\",\n  \"dateCollected\": \"2025-10-17T10:30:00Z\",\n  \"wasteType\": \"recyclable\",\n  \"weight\": 5.5,\n  \"notes\": \"Full bin, good condition\",\n  \"workerId\": \"WORKER-001\",\n  \"status\": \"collected\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/collections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections"]
+            }
+          }
+        },
+        {
+          "name": "Create Collection - Non-Recyclable",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"binID\": \"BIN-G001\",\n  \"dateCollected\": \"2025-10-17T11:00:00Z\",\n  \"wasteType\": \"non_recyclable\",\n  \"weight\": 3.2,\n  \"notes\": \"Regular collection\",\n  \"workerId\": \"WORKER-001\",\n  \"status\": \"collected\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/collections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections"]
+            }
+          }
+        },
+        {
+          "name": "Create Collection - Partial",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"binID\": \"BIN-R002\",\n  \"wasteType\": \"recyclable\",\n  \"weight\": 2.5,\n  \"notes\": \"Overflow - partial collection only\",\n  \"workerId\": \"WORKER-002\",\n  \"status\": \"partial\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/collections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections"]
+            }
+          }
+        },
+        {
+          "name": "Create Collection - Not Collected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"binID\": \"BIN-R003\",\n  \"wasteType\": \"recyclable\",\n  \"weight\": 0,\n  \"notes\": \"Bin blocked by parked vehicle\",\n  \"workerId\": \"WORKER-001\",\n  \"status\": \"not_collected\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/collections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections"]
+            }
+          }
+        },
+        {
+          "name": "Update Collection Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"partial\",\n  \"notes\": \"Corrected - was overflow\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/collections/{{collectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections", "{{collectionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Collection Weight",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weight\": 6.8,\n  \"notes\": \"Weight corrected after re-weighing\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/collections/{{collectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections", "{{collectionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Collection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/collections/{{collectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collections", "{{collectionId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "residentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "binId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "collectionId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

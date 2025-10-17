@@ -7,17 +7,24 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['resident', 'staff', 'admin'], default: 'resident' },
   address: String,
+  phone: String, // Phone number for contact
   area: { type: String, index: true }, // area/zone user belongs to
   userType: { type: String, enum: ['resident', 'business'], default: 'resident' },
   accountInfo: {
     accountNumber: String,
     status: { type: String, enum: ['active', 'inactive'], default: 'active' }
   },
+  // Resident-specific fields
+  householdSize: String,
   wasteBinId: String,
   wasteTypePreference: String,
   paymentInfo: String,
+  // Staff-specific fields
+  staffId: String,
   assignedRoutes: [String], // for staff
   collectionStatus: String, // for staff
+  // Admin-specific fields
+  department: String,
 }, { timestamps: true });
 
 // Hash password before saving

@@ -15,23 +15,45 @@ function createAuthPayload(user) {
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, role, address, wasteBinId, wasteTypePreference, paymentInfo } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      role, 
+      address, 
+      phone,
+      householdSize,
+      staffId,
+      department,
+      wasteBinId, 
+      wasteTypePreference, 
+      paymentInfo 
+    } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'Email is already registered' });
     }
 
-    const user = await User.create({
+    // Build user object with common fields
+    const userData = {
       name,
       email,
       password,
-      role,
+      role: role || 'resident',
       address,
-      wasteBinId,
-      wasteTypePreference,
-      paymentInfo
-    });
+      phone
+    };
+
+    // Add role-specific fields
+    if (householdSize) userData.householdSize = householdSize;
+    if (staffId) userData.staffId = staffId;
+    if (department) userData.department = department;
+    if (wasteBinId) userData.wasteBinId = wasteBinId;
+    if (wasteTypePreference) userData.wasteTypePreference = wasteTypePreference;
+    if (paymentInfo) userData.paymentInfo = paymentInfo;
+
+    const user = await User.create(userData);
 
     const payload = createAuthPayload(user);
     res.status(201).json(payload);

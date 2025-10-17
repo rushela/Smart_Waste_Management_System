@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, Truck, BarChart4, Lock, Mail, ArrowLeft } from 'lucide-react'
-// Auth removed
+import { useAuth } from '../context/AuthContext'
 // Particle background removed from auth page to prevent layout jitter
 
 type Role = 'resident' | 'staff' | 'admin'
 
 export function Login() {
   const navigate = useNavigate()
-  // Auth removed; no login/logout
+  const { login, logout } = useAuth()
   const [role, setRole] = useState<Role>('resident')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -35,8 +35,15 @@ export function Login() {
     try {
       setIsLoading(true)
       setError(null)
-      // Direct navigation without backend auth
-      const destination = role === 'resident' ? '/' : '/admin/dashboard'
+      const authenticatedUser = await login(email, password)
+
+      if (authenticatedUser.role !== role) {
+        setError('Selected role does not match your account role.')
+        logout()
+        return
+      }
+
+      const destination = authenticatedUser.role === 'resident' ? '/' : '/admin/dashboard'
       navigate(destination)
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.')
