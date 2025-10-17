@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DollarSign, TrendingUp, AlertCircle, Download } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { reportService } from '../services/api';
-import { format } from 'date-fns';
 
 export const PaymentReports: React.FC = () => {
   const [loading, setLoading] = useState(false);

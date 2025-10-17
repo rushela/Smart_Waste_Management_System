@@ -23,7 +23,7 @@ const { NotFoundError } = require('../utils/errors');
 exports.getSummary = async (req, res, next) => {
   try {
     const result = await fetchSummary(req.query);
-    await logReportGeneration({ userId: req.user?._id, endpoint: 'summary', params: req.query });
+  await logReportGeneration({ userId: req.user?._id, endpoint: 'summary', params: req.query });
     res.json({ data: result });
   } catch (err) { next(err); }
 };
@@ -32,7 +32,7 @@ exports.getSummary = async (req, res, next) => {
 exports.getTrends = async (req, res, next) => {
   try {
     const result = await fetchTrends(req.query);
-    await logReportGeneration({ userId: req.user?._id, endpoint: 'trends', params: req.query });
+  await logReportGeneration({ userId: req.user?._id, endpoint: 'trends', params: req.query });
     res.json({ data: result });
   } catch (err) { next(err); }
 };
@@ -41,7 +41,7 @@ exports.getTrends = async (req, res, next) => {
 exports.getRouteEfficiency = async (req, res, next) => {
   try {
     const result = await fetchRouteEfficiency(req.query);
-    await logReportGeneration({ userId: req.user?._id, endpoint: 'route-efficiency', params: req.query });
+  await logReportGeneration({ userId: req.user?._id, endpoint: 'route-efficiency', params: req.query });
     res.json({ data: result });
   } catch (err) { next(err); }
 };
@@ -50,7 +50,7 @@ exports.getRouteEfficiency = async (req, res, next) => {
 exports.getUserReport = async (req, res, next) => {
   try {
     const targetUserId = req.params.id;
-    const data = await fetchUserReport({ userId: targetUserId, ...req.query });
+  const data = await fetchUserReport({ userId: targetUserId, ...req.query });
     await logReportGeneration({
       userId: req.user?._id,
       endpoint: 'user',
@@ -68,8 +68,8 @@ exports.getUserReport = async (req, res, next) => {
 // GET /api/reports/payments
 exports.getPaymentReports = async (req, res, next) => {
   try {
-    const summary = await fetchPaymentSummary(req.query);
-    await logReportGeneration({ userId: req.user?._id, endpoint: 'payments', params: req.query });
+  const summary = await fetchPaymentSummary(req.query);
+  await logReportGeneration({ userId: req.user?._id, endpoint: 'payments', params: req.query });
     res.json({ data: summary });
   } catch (err) { next(err); }
 };
@@ -77,14 +77,14 @@ exports.getPaymentReports = async (req, res, next) => {
 // Custom Report Config CRUD
 exports.createConfig = async (req, res, next) => {
   try {
-    const config = await createReportConfig({ payload: req.body, userId: req.user._id });
+  const config = await createReportConfig({ payload: req.body });
     res.status(201).json({ data: config });
   } catch (err) { next(err); }
 };
 
 exports.listConfigs = async (req, res, next) => {
   try {
-    const configs = await listReportConfigs({ userId: req.user._id });
+  const configs = await listReportConfigs();
     res.json({ data: configs });
   } catch (err) { next(err); }
 };
@@ -93,7 +93,6 @@ exports.updateConfig = async (req, res, next) => {
   try {
     const config = await updateReportConfig({
       configId: req.params.id,
-      userId: req.user._id,
       updates: req.body
     });
     res.json({ data: config });
@@ -107,7 +106,7 @@ exports.updateConfig = async (req, res, next) => {
 
 exports.deleteConfig = async (req, res, next) => {
   try {
-    await deleteReportConfig({ configId: req.params.id, userId: req.user._id });
+  await deleteReportConfig({ configId: req.params.id });
     res.json({ message: 'Deleted' });
   } catch (err) {
     if (err instanceof NotFoundError) {

@@ -1,14 +1,11 @@
 const express = require('express');
 const { query, body } = require('express-validator');
-const auth = require('../middleware/auth');
-const role = require('../middleware/role');
 const validate = require('../middleware/validate');
 const c = require('../controllers/reportController');
 
 const router = express.Router();
 
-// All report routes require auth and role staff/admin
-router.use(auth, role(['staff', 'admin']));
+// Auth removed: routes are public
 
 // Waste Reports
 router.get('/summary', [

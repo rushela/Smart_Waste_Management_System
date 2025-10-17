@@ -7,7 +7,7 @@ const ReportConfigSchema = new mongoose.Schema({
     from: { type: Date },
     to: { type: Date }
   },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('ReportConfig', ReportConfigSchema);

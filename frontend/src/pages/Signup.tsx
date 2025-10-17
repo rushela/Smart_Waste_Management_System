@@ -12,13 +12,13 @@ import {
   Phone,
 } from 'lucide-react'
 // Particle background removed from auth page to prevent layout jitter
-import { useAuth } from '../context/AuthContext'
+// Auth removed
 
 type Role = 'resident' | 'staff' | 'admin'
 
 export function Signup() {
   const navigate = useNavigate()
-  const { register } = useAuth()
+  // No register; we'll navigate directly
 
   const [selectedRole, setSelectedRole] = useState<Role>('resident')
   const [agreeTerms, setAgreeTerms] = useState(false)
@@ -73,8 +73,8 @@ export function Signup() {
         address: form.address.trim()
       }
 
-      const registeredUser = await register(payload)
-      const destination = registeredUser.role === 'resident' ? '/' : '/admin/dashboard'
+  // Simulate success and navigate directly
+  const destination = payload.role === 'resident' ? '/' : '/admin/dashboard'
       navigate(destination)
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.')

@@ -10,17 +10,16 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// Auth removed
 
 export const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const user: { name?: string; role?: string } = {};
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const navItems = [
@@ -67,8 +66,8 @@ export const AdminLayout: React.FC = () => {
               {user?.name?.charAt(0).toUpperCase() || 'A'}
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-800">{user?.name || 'Admin'}</p>
-              <p className="text-xs text-gray-500">{user?.role || 'admin'}</p>
+              <p className="text-sm font-medium text-gray-800">{user?.name || 'Guest'}</p>
+              <p className="text-xs text-gray-500">{user?.role || 'visitor'}</p>
             </div>
           </div>
           <button
@@ -142,9 +141,7 @@ export const AdminLayout: React.FC = () => {
             {navItems.find((item) => item.path === location.pathname)?.label || 'Dashboard'}
           </h1>
           <div className="flex items-center space-x-4">
-            <span className="hidden md:inline text-sm text-gray-600">
-              Welcome, {user?.name || 'Admin'}
-            </span>
+            <span className="hidden md:inline text-sm text-gray-600">Welcome</span>
           </div>
         </header>
 
