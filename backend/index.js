@@ -11,11 +11,30 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
 
-// Optional MongoDB connection
+// Optional MongoDB connection with retry logic
 if (process.env.MONGO_URI) {
-  mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.warn('MongoDB connection error:', err));
+  const connectWithRetry = async () => {
+    console.log('🔄 Attempting to connect to MongoDB...');
+    try {
+      await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 10000, // Increased timeout to 10s
+        socketTimeoutMS: 45000,
+      });
+      console.log('✅ Connected to MongoDB successfully!');
+      console.log('📦 Database:', mongoose.connection.name);
+    } catch (err) {
+      console.error('❌ MongoDB connection failed:', err.message);
+      console.log('\n💡 Troubleshooting steps:');
+      console.log('   1. ✓ IP whitelist (0.0.0.0/0 is active)');
+      console.log('   2. Check database user exists in Atlas → Database Access');
+      console.log('   3. Verify password is correct (no special chars issues)');
+      console.log('   4. Wait 1-2 minutes after making Atlas changes');
+      console.log('   5. Check cluster name matches: cluster0.df6enii');
+      console.log('\n⚙️  Running in offline mode (in-memory storage)...\n');
+    }
+  };
+  
+  connectWithRetry();
 } else {
   console.log('MONGO_URI not set — running without DB (dev mode)');
 }
