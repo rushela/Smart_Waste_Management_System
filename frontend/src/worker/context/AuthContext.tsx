@@ -68,6 +68,12 @@ export const AuthProvider: React.FC<{
             name: `${data.user.firstName || ''} ${data.user.lastName || ''}`.trim() || data.user.email,
             email: data.user.email,
           };
+          
+          // Store the JWT token for API requests
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+          }
+          
           setWorker(workerData);
           setIsAuthenticated(true);
           localStorage.setItem('ecoWorker', JSON.stringify(workerData));
@@ -108,6 +114,7 @@ export const AuthProvider: React.FC<{
     setWorker(null);
     setIsAuthenticated(false);
     localStorage.removeItem('ecoWorker');
+    localStorage.removeItem('token');
   };
 
   return <AuthContext.Provider value={{

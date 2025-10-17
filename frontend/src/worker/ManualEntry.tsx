@@ -56,12 +56,13 @@ const ManualEntry: React.FC = () => {
   };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would submit to the backend
+    // TODO: Replace with real API call
+    // await workerApi.manual.create(formData);
     console.log('Manual entry submitted:', formData);
     // Show success message
     alert('Manual entry recorded successfully!');
-    // Navigate to summary
-    navigate('/summary');
+    // Navigate to worker summary
+    navigate('/worker/summary');
   };
   return <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header title="Manual Entry" showBackButton />

@@ -6,7 +6,15 @@ const mongoose = require('mongoose');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// CORS configuration - Allow frontend origins
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
@@ -39,7 +47,11 @@ if (process.env.MONGO_URI) {
   console.log('MONGO_URI not set — running without DB (dev mode)');
 }
 
-// Simple in-memory users store for dev if no DB
+// Register authentication routes (using proper auth controller)
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
+// Simple in-memory users store for dev if no DB (fallback only)
 const users = [];
 
 // Helper to find user (by email)
@@ -47,28 +59,39 @@ function findUser(email) {
   return users.find(u => u.email === email);
 }
 
-// Signup endpoint
-app.post('/api/auth/signup', (req, res) => {
-  const { email, password, firstName, lastName, role } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
-  if (findUser(email)) return res.status(409).json({ message: 'User already exists' });
-  const user = { id: users.length + 1, email, password, firstName, lastName, role };
-  users.push(user);
-  return res.status(201).json({ message: 'User created', user: { id: user.id, email: user.email } });
-});
-
-// Login endpoint
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  const user = findUser(email);
-  if (!user || user.password !== password) return res.status(401).json({ message: 'Invalid credentials' });
-  // In a real app you'd return a JWT or session
-  return res.json({ message: 'OK', user: { id: user.id, email: user.email, role: user.role } });
-});
-
 // Simple user listing (dev only)
 app.get('/api/users', (req, res) => {
   return res.json(users.map(u => ({ id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, role: u.role })));
+});
+
+// ========== WORKER MODULE ROUTES ==========
+// Register worker-specific routes (only if MongoDB is connected)
+if (mongoose.connection.readyState === 1 || process.env.MONGO_URI) {
+  const workerDashboardRoutes = require('./routes/worker/workerDashboard');
+  const workerBinsRoutes = require('./routes/worker/workerBins');
+  const workerCollectionsRoutes = require('./routes/worker/workerCollections');
+  const workerHistoryRoutes = require('./routes/worker/workerHistory');
+  const workerManualRoutes = require('./routes/worker/workerManual');
+  const workerSummaryRoutes = require('./routes/worker/workerSummary');
+
+  app.use('/api/worker/dashboard', workerDashboardRoutes);
+  app.use('/api/worker/bins', workerBinsRoutes);
+  app.use('/api/worker/collections', workerCollectionsRoutes);
+  app.use('/api/worker/history', workerHistoryRoutes);
+  app.use('/api/worker/manual', workerManualRoutes);
+  app.use('/api/worker/summary', workerSummaryRoutes);
+
+  console.log('✅ Worker module routes registered');
+}
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 app.listen(PORT, () => console.log(`Backend dev server listening on http://localhost:${PORT}`));

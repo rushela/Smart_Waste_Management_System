@@ -86,15 +86,16 @@ const ScanPage: React.FC = () => {
   };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would submit to the backend
+    // TODO: Replace with real API call
+    // await workerApi.collections.create({ binId, ...formData });
     console.log('Form submitted:', {
       binId,
       ...formData
     });
     // Show success message
     alert('Collection recorded successfully!');
-    // Navigate to dashboard
-    navigate('/dashboard');
+    // Navigate back to worker dashboard
+    navigate('/worker/dashboard');
   };
   return <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header title="Bin Scanning" showBackButton />

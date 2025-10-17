@@ -4,7 +4,7 @@ import { User, Truck, BarChart4, Lock, Mail, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 // Particle background removed from auth page to prevent layout jitter
 
-type Role = 'resident' | 'staff' | 'admin'
+type Role = 'resident' | 'staff' | 'worker' | 'admin'
 
 export function Login() {
   const navigate = useNavigate()
@@ -37,13 +37,25 @@ export function Login() {
       setError(null)
       const authenticatedUser = await login(email, password)
 
-      if (authenticatedUser.role !== role) {
+      // Allow both 'worker' and 'staff' roles to be treated as staff
+      const userRole = authenticatedUser.role === 'worker' ? 'staff' : authenticatedUser.role
+
+      if (userRole !== role) {
         setError('Selected role does not match your account role.')
         logout()
         return
       }
 
-      const destination = authenticatedUser.role === 'resident' ? '/' : '/admin/dashboard'
+      // Route staff/worker to worker dashboard, others to their respective dashboards
+      let destination = '/'
+      if (authenticatedUser.role === 'staff' || authenticatedUser.role === 'worker') {
+        destination = '/worker/dashboard'
+      } else if (authenticatedUser.role === 'admin') {
+        destination = '/admin/dashboard'
+      } else {
+        destination = '/' // resident
+      }
+      
       navigate(destination)
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.')

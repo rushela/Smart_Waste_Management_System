@@ -26,20 +26,14 @@ import TransactionHistory from './payment/TransactionHistory.jsx';
 // @ts-ignore
 import PaymentStatus from './payment/PaymentStatus.jsx';
 
-// Worker application imports – use actual folder structure under ./worker
-// @ts-ignore
-import WorkerLogin from './worker/Login.js';
-// @ts-ignore
-import WorkerDashboard from './worker/Dashboard.js';
-// @ts-ignore
-import ScanPage from './worker/ScanPage.js';
-// @ts-ignore
-import History from './worker/History.js';
-// @ts-ignore
-import ManualEntry from './worker/ManualEntry.js';
-// @ts-ignore
-import Summary from './worker/Summary.js';
-import { AuthProvider as WorkerAuthProvider } from './worker/context/AuthContext.js';
+// Worker application imports
+import WorkerLogin from './worker/Login';
+import WorkerDashboard from './worker/Dashboard';
+import ScanPage from './worker/ScanPage';
+import History from './worker/History';
+import ManualEntry from './worker/ManualEntry';
+import Summary from './worker/Summary';
+import { AuthProvider as WorkerAuthProvider } from './worker/context/AuthContext';
 
 /**
  * Combined application router. This single router definition serves both the

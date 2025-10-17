@@ -4,7 +4,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'resident' | 'staff' | 'admin';
+  role: 'resident' | 'staff' | 'worker' | 'admin';
 }
 
 interface RegisterPayload {
@@ -91,23 +91,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (payload: RegisterPayload) => {
     try {
+      console.log('Calling register API with:', { ...payload, password: '***' });
+      
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
+      console.log('Register API response status:', response.status);
+
       if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({ message: 'Registration failed' }));
+        console.error('Register API error:', error);
         throw new Error(error.message || 'Registration failed');
       }
 
       const data = await response.json();
+      console.log('Register API success:', { user: data.user, hasToken: !!data.token });
+      
       persistAuth(data.token, data.user);
       return data.user as User;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      throw error;
+      throw new Error(error.message || 'Failed to connect to server. Please try again.');
     }
   };
 

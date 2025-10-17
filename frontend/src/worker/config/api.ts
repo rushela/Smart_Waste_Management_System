@@ -1,31 +1,47 @@
 /**
  * API Configuration for Worker Module
- * Centralized configuration for backend API endpoints
+ * 
+ * DEPRECATED: Please use the new worker API service instead:
+ * import workerApi from '../services/api';
+ * 
+ * This file is kept for backward compatibility only.
  */
 
 // Backend API base URL - change this when deploying to production
 export const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
 
-// API endpoints
+// Updated API endpoints to match backend worker routes
 export const API_ENDPOINTS = {
   auth: {
     login: `${API_BASE_URL}/api/auth/login`,
     logout: `${API_BASE_URL}/api/auth/logout`,
     signup: `${API_BASE_URL}/api/auth/signup`,
   },
-  collections: {
-    list: `${API_BASE_URL}/api/collections`,
-    create: `${API_BASE_URL}/api/collections`,
-    update: (id: string) => `${API_BASE_URL}/api/collections/${id}`,
-    delete: (id: string) => `${API_BASE_URL}/api/collections/${id}`,
-  },
-  routes: {
-    list: `${API_BASE_URL}/api/routes`,
-    byWorker: (workerId: string) => `${API_BASE_URL}/api/routes/worker/${workerId}`,
-  },
-  bins: {
-    list: `${API_BASE_URL}/api/bins`,
-    byId: (binId: string) => `${API_BASE_URL}/api/bins/${binId}`,
+  worker: {
+    // Dashboard
+    dashboard: `${API_BASE_URL}/api/worker/dashboard`,
+    routes: `${API_BASE_URL}/api/worker/dashboard/routes`,
+    
+    // Bins
+    binByQR: (qrCode: string) => `${API_BASE_URL}/api/worker/bins/qr/${qrCode}`,
+    binById: (binId: string) => `${API_BASE_URL}/api/worker/bins/${binId}`,
+    
+    // Collections
+    collections: `${API_BASE_URL}/api/worker/collections`,
+    collectionById: (id: string) => `${API_BASE_URL}/api/worker/collections/${id}`,
+    
+    // History
+    history: `${API_BASE_URL}/api/worker/history`,
+    historyStats: `${API_BASE_URL}/api/worker/history/stats`,
+    
+    // Manual Entry
+    manual: `${API_BASE_URL}/api/worker/manual`,
+    
+    // Summary/Session
+    sessionStart: `${API_BASE_URL}/api/worker/summary/session/start`,
+    sessionEnd: `${API_BASE_URL}/api/worker/summary/session/end`,
+    sessionCurrent: `${API_BASE_URL}/api/worker/summary/session/current`,
+    sessionReport: `${API_BASE_URL}/api/worker/summary/report`,
   },
 };
 

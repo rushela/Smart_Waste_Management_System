@@ -14,7 +14,7 @@ import {
 // Particle background removed from auth page to prevent layout jitter
 import { useAuth } from '../context/AuthContext'
 
-type Role = 'resident' | 'staff' | 'admin'
+type Role = 'resident' | 'staff' | 'worker' | 'admin'
 
 export function Signup() {
   const navigate = useNavigate()
@@ -59,7 +59,11 @@ export function Signup() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!agreeTerms) return
+    
+    if (!agreeTerms) {
+      setError('Please agree to the Terms of Service and Privacy Policy.')
+      return
+    }
 
     try {
       setIsSubmitting(true)
@@ -73,10 +77,25 @@ export function Signup() {
         address: form.address.trim()
       }
 
+      console.log('Submitting registration with payload:', { ...payload, password: '***' })
+
       const registeredUser = await register(payload)
-      const destination = registeredUser.role === 'resident' ? '/' : '/admin/dashboard'
+      
+      console.log('Registration successful:', registeredUser)
+      
+      // Route staff/worker to worker dashboard, others to their respective dashboards
+      let destination = '/'
+      if (registeredUser.role === 'staff' || registeredUser.role === 'worker') {
+        destination = '/worker/dashboard'
+      } else if (registeredUser.role === 'admin') {
+        destination = '/admin/dashboard'
+      } else {
+        destination = '/' // resident
+      }
+      
       navigate(destination)
     } catch (err: any) {
+      console.error('Registration error:', err)
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
       setIsSubmitting(false)

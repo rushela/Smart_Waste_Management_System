@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileTextIcon, DownloadIcon, PrinterIcon, CheckCircleIcon, BarChart2Icon, TruckIcon, ClockIcon, MapPinIcon } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import ActionButton from './components/ActionButton';
 import InfoCard from './components/InfoCard';
 import { collectionHistory, routes, wasteTypes } from './data/mockData';
 const Summary: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Calculate summary statistics
   const stats = {
@@ -43,7 +45,8 @@ const Summary: React.FC = () => {
     return type ? type.color : 'bg-gray-500';
   };
   const handleExport = () => {
-    // In a real app, this would generate and download a CSV or PDF
+    // TODO: Replace with real API call
+    // await workerApi.summary.getReport();
     alert('Summary exported successfully!');
   };
   const handlePrint = () => {
@@ -51,10 +54,12 @@ const Summary: React.FC = () => {
   };
   const handleSubmitShift = () => {
     setIsSubmitting(true);
-    // Simulate API call with timeout
+    // TODO: Replace with real API call
+    // await workerApi.summary.endSession();
     setTimeout(() => {
       alert('Shift submitted successfully!');
-      navigate('/login');
+      logout(); // Clear authentication
+      navigate('/worker/login');
     }, 1500);
   };
   return <div className="min-h-screen bg-gray-50 flex flex-col">
