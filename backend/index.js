@@ -1,3 +1,4 @@
+// index.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -7,49 +8,49 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // MUST be before routes
 
-const PORT = process.env.PORT || 4000;
+const { PORT = 5000, MONGO_URI } = process.env;
 
-// Optional MongoDB connection
-if (process.env.MONGO_URI) {
-  mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.warn('MongoDB connection error:', err));
-} else {
-  console.log('MONGO_URI not set — running without DB (dev mode)');
-}
+// DB
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => { console.error('MongoDB connection error:', err); process.exit(1); });
 
-// Simple in-memory users store for dev if no DB
-const users = [];
+/// ---- top of file (after app = express and app.use(express.json())) ----
+app.get('/health', (_req, res) => res.json({ ok: true }));  // OPEN route
 
-// Helper to find user (by email)
-function findUser(email) {
-  return users.find(u => u.email === email);
-}
-
-// Signup endpoint
-app.post('/api/auth/signup', (req, res) => {
-  const { email, password, firstName, lastName, role } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
-  if (findUser(email)) return res.status(409).json({ message: 'User already exists' });
-  const user = { id: users.length + 1, email, password, firstName, lastName, role };
-  users.push(user);
-  return res.status(201).json({ message: 'User created', user: { id: user.id, email: user.email } });
+// (optional but helpful while debugging)
+app.use((req, _res, next) => {
+  console.log(req.method, req.path, 'x-user-email:', req.header('x-user-email'));
+  next();
 });
 
-// Login endpoint
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  const user = findUser(email);
-  if (!user || user.password !== password) return res.status(401).json({ message: 'Invalid credentials' });
-  // In a real app you'd return a JWT or session
-  return res.json({ message: 'OK', user: { id: user.id, email: user.email, role: user.role } });
+// If you want to test mock charge without auth, mount it BEFORE the guard:
+app.use('/api', require('./routes/mockGateway')); // POST /api/mock-gateway/charge
+app.use('/dev', require('./routes/dev'));
+
+// ---- header/user guard comes AFTER the open routes ----
+const User = require('./models/User');
+app.use(async (req, res, next) => {
+  // BYPASS LIST (keep /health here!)
+  if (
+    req.path === '/health' ||
+    req.path === '/api/mock-gateway/charge' ||
+    req.path === '/dev/seed-user'
+  ) return next();
+
+  try {
+    const email = req.header('x-user-email');
+    if (!email) return res.status(400).json({ message: 'x-user-email header required' });
+    const u = await User.findOne({ email }).select('_id email role');
+    if (!u) return res.status(404).json({ message: `User not found: ${email}` });
+    req.user = { _id: u._id, email: u.email, role: u.role };
+    next();
+  } catch (e) { next(e); }
 });
 
-// Simple user listing (dev only)
-app.get('/api/users', (req, res) => {
-  return res.json(users.map(u => ({ id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, role: u.role })));
-});
-
-app.listen(PORT, () => console.log(`Backend dev server listening on http://localhost:${PORT}`));
+// Protected routes below
+app.use('/api', require('./routes/invoice'));
+app.use('/api', require('./routes/credit'));
+app.use('/api', require('./routes/payment'));

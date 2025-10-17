@@ -15,13 +15,13 @@ import { CustomReports } from './pages/CustomReports';
 // Use .jsx extensions explicitly to avoid TS resolver issues without type declarations
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import PaymentDashboard from './payment/paymentDashboard.jsx';
+import PaymentDashboard from './payment/PaymentDashboard.js';
 // @ts-ignore
-import PaymentCheckout from './payment/PaymentCheckout.jsx';
+import PaymentCheckout from './payment/PaymentCheckout.js';
 // @ts-ignore
-import TransactionHistory from './payment/TransactionHistory.jsx';
+import TransactionHistory from './payment/TransactionHistory.js';
 // @ts-ignore
-import PaymentStatus from './payment/PaymentStatus.jsx';
+import PaymentStatus from './payment/PaymentStatus.js';
 
 export function AppRouter() {
   return <AuthProvider>
