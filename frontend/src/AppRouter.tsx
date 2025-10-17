@@ -22,6 +22,9 @@ import PaymentCheckout from './payment/PaymentCheckout.jsx';
 import TransactionHistory from './payment/TransactionHistory.jsx';
 // @ts-ignore
 import PaymentStatus from './payment/PaymentStatus.jsx';
+import DashboardPage from "./pages/DashboardPage.js";
+import CreateRoutePage from "./pages/CreateRoutePage.js";
+import EditRoutePage from "./pages/EditRoutePage.js";
 
 export function AppRouter() {
   return <BrowserRouter>
