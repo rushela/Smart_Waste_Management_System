@@ -11,6 +11,10 @@ import { WasteReports } from './pages/WasteReports';
 import { UserReports } from './pages/UserReports';
 import { PaymentReports } from './pages/PaymentReports';
 import { CustomReports } from './pages/CustomReports';
+import { PaymentsPage } from './pages/PaymentsPage';
+import { PaybackPage } from './pages/PaybackPage';
+import { AdminPricingPage } from './pages/AdminPricingPage';
+import { PaymentSummaryPage } from './pages/PaymentSummaryPage';
 // Payment pages (JSX files)
 // Use .jsx extensions explicitly to avoid TS resolver issues without type declarations
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -34,6 +38,8 @@ export function AppRouter() {
           <Route path="/checkout" element={<PaymentCheckout />} />
           <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/payment/status/:id" element={<PaymentStatus />} />
+          <Route path="/payments" element={<PaymentsPage />} />
+          <Route path="/paybacks" element={<PaybackPage />} />
           
           {/* Admin Dashboard Routes */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -42,6 +48,8 @@ export function AppRouter() {
             <Route path="user-reports" element={<UserReports />} />
             <Route path="payment-reports" element={<PaymentReports />} />
             <Route path="custom-reports" element={<CustomReports />} />
+            <Route path="pricing" element={<AdminPricingPage />} />
+            <Route path="payments-summary" element={<PaymentSummaryPage />} />
           </Route>
         </Routes>
       </BrowserRouter>;

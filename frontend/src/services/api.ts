@@ -2,11 +2,17 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
+// For dev mode: use a dummy MongoDB ObjectId format
+// In production, this would come from authentication after login
+// This is a valid MongoDB ObjectId format that won't cause validation errors
+const DEV_USER_ID = '507f1f77bcf86cd799439011'; // Valid ObjectId format for dev
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'x-user-id': DEV_USER_ID, // Dev mode: pass user ID directly
   },
 });
 
@@ -64,3 +70,17 @@ export const userService = {
 };
 
 export default api;
+
+// Payment-specific client helpers (optional usage from pages)
+export const paymentsApi = {
+  listHistory: (headers?: any) => api.get('/payments/history/me', { headers }),
+  createPayment: (data: any, headers?: any) => api.post('/payments', data, { headers }),
+  createPayback: (data: any, headers?: any) => api.post('/payments/payback', data, { headers }),
+  summary: () => api.get('/payments/summary'),
+  pricing: {
+    list: () => api.get('/pricing'),
+    create: (data: any) => api.post('/pricing', data),
+    update: (id: string, data: any) => api.put(`/pricing/${id}`, data),
+    remove: (id: string) => api.delete(`/pricing/${id}`),
+  }
+};

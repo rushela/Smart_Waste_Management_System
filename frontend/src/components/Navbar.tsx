@@ -39,6 +39,12 @@ export const Navbar = () => {
             <Link to="#contact" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
               Contact Us
             </Link>
+            <Link to="/payments" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
+              Payments 💳
+            </Link>
+            <Link to="/admin/pricing" className={`font-medium whitespace-nowrap ${isScrolled ? 'text-gray-800 hover:text-[#2ECC71]' : 'text-white hover:text-[#FF8C42]'} transition-colors`}>
+              Admin Panel
+            </Link>
             <a href="/login" className="font-medium whitespace-nowrap text-white bg-[#FF8C42] hover:bg-[#e67e3a] px-4 py-2 rounded-full transition-colors flex-shrink-0">
               Login
             </a>
@@ -63,6 +69,12 @@ export const Navbar = () => {
             </Link>
             <Link to="#contact" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
               Contact Us
+            </Link>
+            <Link to="/payments" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
+              Payments 💳
+            </Link>
+            <Link to="/admin/pricing" className="font-medium text-gray-800 hover:text-[#2ECC71] transition-colors">
+              Admin Panel
             </Link>
             <Link to="/login" className="font-medium text-white bg-[#FF8C42] hover:bg-[#e67e3a] px-4 py-2 rounded-full transition-colors text-center">
               Login

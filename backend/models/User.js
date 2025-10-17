@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   address: String,
   area: { type: String, index: true }, // area/zone user belongs to
   userType: { type: String, enum: ['resident', 'business'], default: 'resident' },
+  accountBalance: { type: Number, default: 0 },
   accountInfo: {
     accountNumber: String,
     status: { type: String, enum: ['active', 'inactive'], default: 'active' }

@@ -47,8 +47,21 @@ app.post('/api/auth/login', (req, res) => {
   return res.json({ message: 'OK', user: { id: user.id, email: user.email, role: user.role } });
 });
 
-// Simple user listing (dev only)
-app.get('/api/users', (req, res) => {
+// Import and mount all API routes
+const authRoutes = require('./routes/auth');
+const paymentRoutes = require('./routes/payments');
+const pricingRoutes = require('./routes/pricing');
+const reportsRoutes = require('./routes/reports');
+const usersRoutes = require('./routes/users');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/pricing', pricingRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/users', usersRoutes);
+
+// Simple in-memory user listing (dev only - fallback)
+app.get('/api/users/list', (req, res) => {
   return res.json(users.map(u => ({ id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, role: u.role })));
 });
 
